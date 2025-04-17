@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    ports:
+      - "8082:80"
+    volumes:
+        - '.:/var/www/html'
+    depends_on:
+      - sqlserver
+    networks:
+      - laravel-net
+    environment:
+      - DB_CONNECTION=sqlsrv
+      - DB_HOST=sqlserver
+      - DB_PORT=1433
+      - DB_DATABASE=laravel
+      - DB_USERNAME=sa
+      - DB_PASSWORD=YourStrong!Passw0rd
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql-server
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    networks:
+      - laravel-net
+
+networks:
+  laravel-net:
+    driver: bridge
