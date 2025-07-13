@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RoomSearchTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/room-search-test', [RoomSearchTestController::class, 'showForm'])->name('room-search-test.form');
+Route::post('/room-search-test', [RoomSearchTestController::class, 'submitForm'])->name('room-search-test.submit');
