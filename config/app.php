@@ -61,6 +61,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Secret
+    |--------------------------------------------------------------------------
+    |
+    | This secret is used to authenticate API requests. Set this value in
+    | your ".env" file as API_SECRET. This should be a secure random string.
+    |
+    */
+
+    'api_secret' => env('API_SECRET', 'default-api-secret-change-me'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
