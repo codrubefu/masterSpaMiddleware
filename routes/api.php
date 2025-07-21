@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\roomSearch;
 use App\Http\Controllers\Api\CamerehotelController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\RezervarehotelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,4 +46,15 @@ Route::middleware('api.secret')->group(function () {
     Route::get('/clients/employees/list', [ClientController::class, 'getEmployees']);
     Route::patch('/clients/{id}/employee-status', [ClientController::class, 'updateEmployeeStatus']);
     Route::get('/clients/company/{companyId}', [ClientController::class, 'getCompanyClients']);
+
+    // Rezervarehotel API routes
+    Route::apiResource('reservations', RezervarehotelController::class);
+    Route::patch('/reservations/{id}/checkin', [RezervarehotelController::class, 'checkIn']);
+    Route::patch('/reservations/{id}/checkout', [RezervarehotelController::class, 'checkOut']);
+    Route::patch('/reservations/{id}/payment', [RezervarehotelController::class, 'updatePayment']);
+    Route::patch('/reservations/{id}/cancel', [RezervarehotelController::class, 'cancel']);
+    Route::get('/reservations/room/{roomNumber}', [RezervarehotelController::class, 'getRoomReservations']);
+    Route::get('/reservations/statistics/overview', [RezervarehotelController::class, 'getStatistics']);
+    Route::get('/reservations/arrivals/today', [RezervarehotelController::class, 'getTodaysArrivals']);
+    Route::get('/reservations/departures/today', [RezervarehotelController::class, 'getTodaysDepartures']);
 });
