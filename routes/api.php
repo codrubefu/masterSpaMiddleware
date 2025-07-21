@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\roomSearch;
 use App\Http\Controllers\Api\CamerehotelController;
+use App\Http\Controllers\Api\ClientController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,4 +34,15 @@ Route::middleware('api.secret')->group(function () {
     Route::get('/camerehotel/{id}/statistics', [CamerehotelController::class, 'getRoomStatistics']);
     Route::get('/camerehotel/virtual/list', [CamerehotelController::class, 'getVirtualRooms']);
     Route::get('/camerehotel/baby-beds/list', [CamerehotelController::class, 'getRoomsWithBabyBeds']);
+
+    // Client API routes
+    Route::apiResource('clients', ClientController::class);
+    Route::post('/clients/search', [ClientController::class, 'search']);
+    Route::get('/clients/vip/list', [ClientController::class, 'getVipClients']);
+    Route::patch('/clients/{id}/vip-status', [ClientController::class, 'updateVipStatus']);
+    Route::get('/clients/{id}/reservations', [ClientController::class, 'getReservations']);
+    Route::get('/clients/{id}/statistics', [ClientController::class, 'getStatistics']);
+    Route::get('/clients/employees/list', [ClientController::class, 'getEmployees']);
+    Route::patch('/clients/{id}/employee-status', [ClientController::class, 'updateEmployeeStatus']);
+    Route::get('/clients/company/{companyId}', [ClientController::class, 'getCompanyClients']);
 });

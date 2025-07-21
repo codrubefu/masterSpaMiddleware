@@ -107,7 +107,7 @@ class CamerehotelController extends Controller
      */
     public function show($id)
     {
-        $room = Camerehotel::with('rezervari')->find($id);
+        $room = Camerehotel::find($id);
 
         if (!$room) {
             return response()->json([
