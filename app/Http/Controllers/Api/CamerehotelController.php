@@ -320,4 +320,40 @@ class CamerehotelController extends Controller
 
         return response()->json($roomsWithBabyBeds);
     }
+
+    /**
+     * Get all rooms grouped by tip (room type)
+     */
+    public function getRoomsGroupedByType()
+    {
+        $roomsGrouped = Camerehotel::orderBy('tip')
+            ->orderBy('nr')
+            ->get()
+            ->groupBy('tip');
+
+        // Transform the grouped data to include type information
+        $result = [];
+        $i = 0;
+        foreach ($roomsGrouped as $tip => $rooms) {
+            // Convert the first room to array to avoid Eloquent model modification issues
+            $roomsInfo = [
+                'tip' => $rooms[0]->tip,
+                'tiplung' => $rooms[0]->tiplung,
+                'adultMax' => $rooms[0]->adultMax,
+                'kidMax' => $rooms[0]->kidMax,
+                'babyBed' => $rooms[0]->babyBed,
+            ];
+            $result[$i] = $roomsInfo;
+            $result[$i]['count'] = count($rooms);
+            $result[$i]['room_numbers'] = [];
+
+            foreach ($rooms as $room) {
+                $result[$i]['room_numbers'][] = $room->nr;
+            }
+
+            $i++;
+        }
+
+        return response()->json($result);
+    }
 }

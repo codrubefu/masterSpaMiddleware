@@ -35,7 +35,6 @@ class Camerehotel extends Model
     protected $casts = [
         'virtual' => 'boolean',
         'idlabel' => 'integer',
-        'tip' => 'integer',
         'pagina' => 'integer',
         'idhotel' => 'integer',
         'etajresel' => 'integer',
@@ -59,11 +58,6 @@ class Camerehotel extends Model
     public function scopeByHotel($query, $hotelId)
     {
         return $query->where('idhotel', $hotelId);
-    }
-
-    public function scopeByType($query, $type)
-    {
-        return $query->where('tip', $type);
     }
 
     public function scopeByFloor($query, $floor)

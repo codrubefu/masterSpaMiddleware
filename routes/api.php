@@ -26,15 +26,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('api.secret')->group(function () {
     Route::post('/rooms/search-combinations', [roomSearch::class, 'searchAvailableRoomCombinations']);
 
-    // Camerehotel API routes
-    Route::apiResource('camerehotel', CamerehotelController::class);
+    // Camerehotel API routes - specific routes before resource routes
+    Route::get('/camerehotel/grouped-by-type', [CamerehotelController::class, 'getRoomsGroupedByType']);
+    Route::get('/camerehotel/virtual/list', [CamerehotelController::class, 'getVirtualRooms']);
+    Route::get('/camerehotel/baby-beds/list', [CamerehotelController::class, 'getRoomsWithBabyBeds']);
     Route::get('/camerehotel/hotel/{hotelId}', [CamerehotelController::class, 'getRoomsByHotel']);
     Route::get('/camerehotel/type/{type}', [CamerehotelController::class, 'getRoomsByType']);
     Route::get('/camerehotel/hotel/{hotelId}/floor/{floor}', [CamerehotelController::class, 'getRoomsByFloor']);
     Route::post('/camerehotel/search-capacity', [CamerehotelController::class, 'searchByCapacity']);
     Route::get('/camerehotel/{id}/statistics', [CamerehotelController::class, 'getRoomStatistics']);
-    Route::get('/camerehotel/virtual/list', [CamerehotelController::class, 'getVirtualRooms']);
-    Route::get('/camerehotel/baby-beds/list', [CamerehotelController::class, 'getRoomsWithBabyBeds']);
+
+    // Standard CRUD routes
+    Route::apiResource('camerehotel', CamerehotelController::class);
 
     // Client API routes
     Route::apiResource('clients', ClientController::class);
