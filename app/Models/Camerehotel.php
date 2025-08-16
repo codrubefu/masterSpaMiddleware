@@ -54,6 +54,11 @@ class Camerehotel extends Model
         return $this->hasMany(Rezervarehotel::class, 'camera', 'nr');
     }
 
+    public function pret()
+    {
+        return $this->hasMany(Pret::class, 'tipcamera', 'tip');
+    }
+
     // Scopes
     public function scopeByHotel($query, $hotelId)
     {

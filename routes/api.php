@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\roomSearch;
 use App\Http\Controllers\Api\CamerehotelController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RezervarehotelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -60,4 +61,6 @@ Route::middleware('api.secret')->group(function () {
     Route::get('/reservations/statistics/overview', [RezervarehotelController::class, 'getStatistics']);
     Route::get('/reservations/arrivals/today', [RezervarehotelController::class, 'getTodaysArrivals']);
     Route::get('/reservations/departures/today', [RezervarehotelController::class, 'getTodaysDepartures']);
+
+    Route::post('/order', [OrderController::class, 'save']);
 });

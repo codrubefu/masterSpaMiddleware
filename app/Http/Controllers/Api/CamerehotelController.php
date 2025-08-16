@@ -58,7 +58,7 @@ class CamerehotelController extends Controller
             $query->where('nr', 'like', '%' . $request->input('nr') . '%');
         }
 
-        $rooms = $query->paginate(15);
+        $rooms = $query->with('pret')->paginate(15);
 
         return response()->json($rooms);
     }
@@ -329,7 +329,9 @@ class CamerehotelController extends Controller
         $roomsGrouped = Camerehotel::orderBy('tip')
             ->orderBy('nr')
             ->get()
-            ->groupBy('tip');
+            ->groupBy(function($item) {
+                return $item->tip . '-' . $item->idhotel;
+            });
 
         // Transform the grouped data to include type information
         $result = [];
@@ -342,6 +344,7 @@ class CamerehotelController extends Controller
                 'adultMax' => $rooms[0]->adultMax,
                 'kidMax' => $rooms[0]->kidMax,
                 'babyBed' => $rooms[0]->babyBed,
+                'idhotel' => $rooms[0]->idhotel,
             ];
             $result[$i] = $roomsInfo;
             $result[$i]['count'] = count($rooms);
@@ -349,6 +352,17 @@ class CamerehotelController extends Controller
 
             foreach ($rooms as $room) {
                 $result[$i]['room_numbers'][] = $room->nr;
+                if ($room->pret) {
+                    foreach ($room->pret as $pret) {
+                        $result[$i]['pret'][$pret->idpret] = [
+                            'pret' => $pret->pret,
+                            'art' => $pret->art,
+                            'idpret' => $pret->idpret
+                        ];
+                    }
+                } else {
+                    $result[$i]['pret'][] = null;
+                }
             }
 
             $i++;
