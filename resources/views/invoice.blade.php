@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FACTURA {{ $nrfactura }}</title>
+  <style>
+  
+    body {
+      font-family: 'DejaVu Sans', DejaVuSans, sans-serif;
+      font-size: 10px;
+      margin: 20px;
+      color: #000;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 6px;
+      text-align: left;
+    }
+    th {
+      background: #f0f0f0;
+    }
+    .right { text-align: right; }
+    .center { text-align: center; }
+    .no-border td, .no-border th { border: none; }
+
+    .header-info { 
+       font-size: 10px;
+     }
+
+     .invoice-info {
+        text-align: center
+     }
+     .footer-table td {
+        border-bottom:0px;
+     }
+
+
+
+  </style>
+</head>
+<body>
+  <table class="no-border">
+    <tr class="header-info">
+      <td style="width: 30%">
+        <strong>CORILUC SRL</strong><br>
+        Str. Schitul Troianu nr. 5, Râmnicu Vâlcea, Vâlcea<br>
+        C.U.I.: RO22394283<br>
+        Nr. Reg. Com.: J38/890/2007<br>
+        Cont: RO19BTRL03901202969267XX<br>
+        Banca: Banca Transilvania
+      </td>
+           <td style="width: 7%">
+      </td>
+      <td class="invoice-info" >
+        <h2>FACTURA</h2>
+         <p style="text-align: left">
+            Număr: {{ $nrfactura }}<br>
+            Data: {{ $data }}<br>
+            Scadent la: {{ $data_scadenta }}
+         </p>
+      </td>
+      <td style="width: 7%">
+      </td>
+      <td style="width: 30%">
+        Denumire: Avion Test<br>
+
+            <strong>Client:</strong> {{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}<br>
+            <strong>C.U.I.:</strong> 0000000000000<br>
+            <strong>E-mail:</strong> {{ $client['email'] ?? '' }}<br>
+            <strong>Adresă:</strong> {{ $client['address_1'] ?? '' }} {{ $client['address_2'] ?? '' }} {{ $client['city'] ?? '' }}<br>
+            <!--
+            <strong>Cont</strong>: RO19BTRL03901202969267XX<br>
+            <strong>Banca:</strong> Banca Transilvania
+            -->
+       </td>
+    </tr>
+  </table>
+  <p style="text-align: right; font-weight: bold;"> Scadent la: 02‑Jun‑2025</p>
+  <table>
+    <thead>
+      <tr>
+        <th class="center">Nr. crt</th>
+        <th>Denumirea produselor sau a serviciilor</th>
+        <th class="center">U.M.</th>
+        <th class="right">Cantitate</th>
+        <th class="right">Preț unitar fără TVA (RON)</th>
+        <th class="right">Valoare (RON)</th>
+        <th class="right">Valoare TVA (RON)</th>
+        <th class="center">Cota TVA</th>
+      </tr>
+      <tr>
+        <td class="center">0</td>
+        <td>1</td>
+        <td class="center">2</td>
+        <td class="right">3</td>
+        <td class="right">4</td>
+        <td class="right">5</td>
+        <td class="right">6</td>
+        <td class="center">7</th>
+      </tr>
+    </thead>
+    <tbody>
+   @foreach ($items as $key => $item)
+    <tr>
+      <td class="center" style="border-bottom: 0px;border-top: 0px;">{{ $key+1 }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;">{{ $item['name'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="center">{{ $item['unit'] ?? 'BUC' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['quantity'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['price'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['total'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['tvaValue'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="center">{{ $item['tva'] ?? '' }}</td>
+    </tr>
+   @endforeach
+
+      @while ($spaces > 0)
+      <tr>
+        <td class="center" style="border-bottom: 0px;border-top: 0px;">&nbsp;</td>
+        <td style="border-bottom: 0px;border-top: 0px;"></td>
+        <td style="border-bottom: 0px;border-top: 0px;" class="center">&nbsp;</td>
+        <td style="border-bottom: 0px;border-top: 0px;" class="right">&nbsp;</td>
+        <td style="border-bottom: 0px;border-top: 0px;" class="right">&nbsp;</td>
+        <td style="border-bottom: 0px;border-top: 0px;" class="right">&nbsp;</td>
+        <td style="border-bottom: 0px;border-top: 0px;" class="right">&nbsp;</td>
+        <td style="border-bottom: 0px;border-top: 0px;" class="center">&nbsp;</td>
+      </tr>
+    @php $spaces--; @endphp
+    @endwhile
+       <tr>
+        <td style="border-top: 0px;"></td>
+        <td colspan="7"> Achitat prin: Card Bancar <br>
+             WEBSITE 
+             Nr. Nota 51400
+        </td>
+      </tr>
+      <tr>
+        <td style="border-bottom:0" colspan="8"> Aceasta factura circula fara stampila si semnatura conform Cod Fiscal 2018, art. 319 alin 29.</td>
+      </tr>
+      <tr >
+        <td style="padding: 0;border-top:0;margin:0;" colspan="8" cellspacing=0 cellpadding=0>
+            <table style="width: 100%;margin: 0;" class="footer-table">
+                <tr>
+                    <td style="border-left:0; height: 50px;text-align:center;width:20%">L.S</td>
+                    <td>
+                        Date privind expeditia:<br>
+                        Nume Delegat: <b>Befu Codrut</b><br>
+                        CNP: 0000000000000<br>
+                        CI seria si nr.: <b>AB123456</b> Eliberat de: <b>Politie</b><br>
+                        Mijloc de transport: <b>Autoturism</b> nr: <b>ABC123</b><br>
+                        Expedierea s-a efectuat prin prezenta noastra la: 22-12-2025<br>
+                        Semnaturile:.....................................
+                    </td>
+                    <td  style="border-right:0; padding:0;">
+                        <table style="margin: 0;">
+                            <tr>
+                                <th style="border-left:0;border-top:0;">TOTAL</th>
+                                <th style="border-top:0;">{{ $totalWithoutTax }}</th>
+                                <th style="border-top:0;border-right:0">{{ $totalTax }}</th>
+                            </tr>
+                            <tr>
+                                <td style="border-left:0;">TVA 19%</td>
+                                <td>{{ $totalWithoutTax }}</td>
+                                <td style="border-right:0;">{{ $totalTax }}</td>
+                            </tr>
+                            
+                            <tr>
+                                <td style="border-left:0;">TVA 9%</td>
+                                <td>0.00</td>
+                                <td style="border-right:0;">0.00</td>
+                            </tr>
+                                <tr>
+                                <td  style="border-left:0;">TVA 5%</td>
+                                <td>0.00</td>
+                                <td style="border-right:0;">0.00</td>
+                            </tr>
+                            <tr>
+                                <td style="border-left:0;">Sematura de primire</td>
+                                <td >
+                                    <b>Total de plata</b>
+                                    (Col.6+Col.7)       
+                                </td>
+                                <td style="text-align: right;border-left:0;border-right:0;">
+                                    <b>{{ $total }}</b>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+ 
+
+  <p>Software dezvoltat de MasterSPA • www.masterspa.ro • versiune 20231101</p>
+  <p>Page 1 of 1</p>
+</body>
+</html>

@@ -20,20 +20,21 @@ class RezervareHotelService
             ->get()->pluck('camera');
     }
 
-    public function getRoomNumber(array $roomsIds,string $checkInDate,string $checkOutDate, int $hotelId)
+    public function getRoomNumber(array $roomsIds, string $checkInDate, string $checkOutDate, int $hotelId)
     {
 
-    $bookedRooms = $this->searchBookedRooms($checkInDate, $checkOutDate, $roomsIds, $hotelId);
-
-    // Remove booked rooms from the list
-    $availableRooms = array_diff($roomsIds, $bookedRooms->toArray());
-    return !empty($availableRooms) ? $availableRooms : null;
+        $bookedRooms = $this->searchBookedRooms($checkInDate, $checkOutDate, $roomsIds, $hotelId);
+       
+        // Remove booked rooms from the list
+        $availableRooms = array_diff($roomsIds, $bookedRooms->toArray());
+        return !empty($availableRooms) ? $availableRooms : null;
     }
 
     public function getNextId(int $y): int
     {
         return DB::table('rezervarehotel')->max('idrezervarehotel') + $y;
     }
+
 }
 
-/*trznp trzdetnp trzdet trzdet*/
+/*trznp trzdetnp trzdet trzfact trzdetfact nrfacspec - 1YY01numar*/

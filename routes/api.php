@@ -62,5 +62,6 @@ Route::middleware('api.secret')->group(function () {
     Route::get('/reservations/arrivals/today', [RezervarehotelController::class, 'getTodaysArrivals']);
     Route::get('/reservations/departures/today', [RezervarehotelController::class, 'getTodaysDepartures']);
 
-    Route::post('/order', [OrderController::class, 'save']);
+    Route::post('/order', [OrderController::class, 'save']); 
+
 });
