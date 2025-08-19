@@ -5,7 +5,7 @@
     <title>Factura MasterSPA</title>
 </head>
 <body>
-    <p>Bună ziua,</p>
+   <p>Bună ziua,</p>
    <p>Vă mulțumim pentru interesul acordat serviciilor noastre!</p>
    <p>Pentru orice întrebări sau nelămuriri, nu ezitați să ne contactați.</p>
    <p>Parerea dumneavoastra este foarte importanta pentru noi si de aceea am aprecia foarte mult un feedback cu privire la experiența serviciilor noastre, prin intermediul formularului web sau printr-un reply la una din adresele noastre de e-mail: noblesse@resortparadis.ro.
