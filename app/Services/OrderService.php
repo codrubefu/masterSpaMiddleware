@@ -22,9 +22,13 @@ class OrderService
         $clientInfo = $orderInfo['billing'];
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
+        $invoiceNo ='FA'.date('Y').str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+
         foreach ($orderInfo['items'] as $item) {
-            $bookedRooms = $this->processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService);
+            $bookedRooms = $this->processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService, $invoiceNo);
         }
+        $this->generateInvoice($orderInfo, $invoiceNo);
+
         return true;
     }
 
@@ -49,7 +53,7 @@ class OrderService
         return $client;
     }
 
-    private function processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, RezervareHotelService $rezervarehotelService)
+    private function processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, RezervareHotelService $rezervarehotelService, $invoiceNo)
     {
         $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
         $hotelId = $item['product_meta_input']['_hotel_id'][0];
@@ -75,7 +79,8 @@ class OrderService
         $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom);
         $trznp = $this->createTrznp($client, $item['subtotal'], $rezervare->idrezervarehotel);
         $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel,$trznp,$tipCamera, $item['quantity']);
-        $this->createTrzfact($client, $item['subtotal'], $rezervare->idrezervarehotel);
+        $this->createTrzfact($client, $item['subtotal'], $rezervare->idrezervarehotel, $invoiceNo);
+        $this->createTrzdetfact($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
         $bookedRooms[] = $selectedRoom;
         return $bookedRooms;
     }
@@ -143,23 +148,44 @@ class OrderService
         return $trzdetnp;
     }
 
-    public function createTrzfact(){
+    public function createTrzfact(client $client, $pret,  $invoiceNumber){
         $trzfact = new Trzfact();
+        $trzfact->idfirma = 1;
+        $trzfact->nrfactfisc = ' ';
+        $trzfact->nrdep = 1;
+        $trzfact->nrgest = 1;
+        $trzfact->idcl = $client->spaid;
+        $trzfact->stotalron = $pret-( $pret * 0.19);
+        $trzfact->tva = $pret * 0.19;
+        $trzfact->cotatva = -1;
+        $trzfact->totalron = $pret;
+        $trzfact->sold = $pret;
+        $trzfact->tipv = 'RON';
+        $trzfact->nume = $client->den . ' ' . $client->prenume;
+        $trzfact->cnp = $client->cnp;
+        $trzfact->datafact = date('Y-m-d');
+        $trzfact->datascad = date('Y-m-d');
+        $trzfact->data = date('Y-m-d');
+        $trzfact->compid = 'Website';
+        $trzfact->tip='CP';
+        $trzfact->nrfactspec = $invoiceNumber;
+        $trzfact->costtot = $pret;
         $trzfact->save();
         return $trzfact;
     }
 
-    public function createTrzdetfact (){
+    public function createTrzdetfact ($client, $pret, $idrezervarehotel, $trznp, $tipCamera, $quantity){
         $trzdetfact = new Trzdetfact();
+        $trzdetfact->idfirma = 1;
         $trzdetfact->save();
         return $trzdetfact;
     }
 
-    public function generateInvoice($orderBookingInfo)
+    public function generateInvoice($orderBookingInfo, $invoiceNo)
     {
         $data = ['title' => 'Welcome to Laravel PDF'];
         $data['spaces'] = 14 - count($orderBookingInfo['items']);
-        $data['nrfactura'] = 'FA'.date('Y').str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        $data['nrfactura'] =  $invoiceNo;
         $data['data'] = date('Y-m-d');
         $data['data_scadenta'] = date('Y-m-d');
         $data['client'] = $orderBookingInfo['billing'];

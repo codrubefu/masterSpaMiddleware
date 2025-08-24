@@ -12,10 +12,9 @@ class OrderController extends Controller
 
     public function save(Request $request, RezervareHotelService $rezervarehotel, OrderService $orderService)
     {
-      
+     
         $orderInfo = $request->all();
         $result = $orderService->saveOrder($orderInfo, $rezervarehotel);
-        $orderService->generateInvoice($orderInfo);
 
         return response()->json($result, 200);
     }
