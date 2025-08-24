@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use App\Models\Camerehotel;
 
 class RoomSearchService
 {
@@ -31,8 +32,8 @@ class RoomSearchService
     public function searchAvailableRoomCombinations($adults, $kids, $startDate, $endDate, $numberOfRooms)
     {
         // Step 1: Get all rooms
-        $rooms = DB::table('camerehotel')
-            ->select('nr', 'adultMax', 'kidMax', 'tip', 'tiplung')
+        $rooms = Camerehotel::with('pret')
+            ->select('nr', 'adultMax', 'kidMax', 'tip', 'tiplung', 'idhotel')
             ->get();
 
         $roomList = $rooms->map(function ($room) {
@@ -42,6 +43,8 @@ class RoomSearchService
                 'kidMax' => $room->kidMax,
                 'type' => $room->tip,
                 'typeName' => $room->tiplung,
+                'hotel' => $room->idhotel,
+                'price' => $room->pret[0]->pret ?? 0,
             ];
         })->toArray();
 
@@ -75,14 +78,25 @@ class RoomSearchService
     private function groupRooms($availableCombinations): array
     {
         $newCombinations = [];
-        foreach ($availableCombinations as $id => $combo) {
+        foreach ($availableCombinations as  $combo) {
             $types = [];
+            $price = 0;
+            $hotel = '';
             foreach ($combo as $room) {
                 $types[] = $room['type'];
+                $price += $room['price'];
+                $hotel .= $room['hotel'];
             }
             $newCombinations[ implode('-', $types)] ['combo'][] = $combo;
+            $newCombinations[ implode('-', $types)] ['price_combo'] = $price;
+            $newCombinations[ implode('-', $types)] ['hotels'] = $hotel;
 
         }
+
+        uasort($newCombinations, function ($a, $b) {
+            return $a['price_combo'] <=> $b['price_combo'];
+        });
+
         return $newCombinations;
     }
 
