@@ -55,20 +55,29 @@ class RoomSearchService
         // Step 2: Distribute people per room
         $distribution = $this->distributePeoplePerRoom($adults, $kids, $numberOfRooms);
 
-        // Step 3: Generate all combinations of rooms with the specified number
+        // Step 3: Pre-fetch all reserved room numbers for the date range
+        $reservedRooms = DB::table('rezervarehotel')
+            ->where(function ($query) use ($startDateTime, $endDateTime) {
+                $query->whereRaw('datas <= ? AND dataf >= ?', [$startDateTime, $endDateTime]);
+            })
+            ->pluck('camera')
+            ->toArray();
+        $reservedSet = array_flip($reservedRooms); // for fast lookup
+
+        // Step 4: Generate all combinations of rooms with the specified number
         $combinations = $this->getRoomCombinations($roomList, $distribution, $numberOfRooms);
 
-        // Step 4: For each combination, check if all rooms are available
+        // Step 5: Filter out combinations that contain any reserved room
         $availableCombinations = [];
         foreach ($combinations as $combo) {
-            $roomNrs = array_column($combo, 'nr');
-            $reserved = DB::table('rezervarehotel')
-                ->whereIn('camera', $roomNrs)
-                ->where(function ($query) use ($startDateTime, $endDateTime) {
-                    $query->whereRaw('datas <= ?  AND  dataf >= ?', [$startDateTime, $endDateTime]);
-                })
-                ->get();
-            if ($reserved->isEmpty()) {
+            $hasReserved = false;
+            foreach ($combo as $room) {
+                if (isset($reservedSet[$room['nr']])) {
+                    $hasReserved = true;
+                    break;
+                }
+            }
+            if (!$hasReserved) {
                 $availableCombinations[] = $combo;
             }
         }
@@ -87,10 +96,16 @@ class RoomSearchService
                 $price += $room['price'];
                 $hotel .= $room['hotel'];
             }
-            $newCombinations[ implode('-', $types)] ['combo'][] = $combo;
-            $newCombinations[ implode('-', $types)] ['price_combo'] = $price;
-            $newCombinations[ implode('-', $types)] ['hotels'] = $hotel;
-
+            $key = implode('-', $types);
+            // Only keep the first combo for each type
+         
+            if (!isset($newCombinations[$key])) {
+                $newCombinations[$key] = [
+                    'combo' => [$combo],
+                    'price_combo' => $price,
+                ];
+                $newCombinations[$key]['hotels'] = $hotel;
+            }
         }
 
         uasort($newCombinations, function ($a, $b) {

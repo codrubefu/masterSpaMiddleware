@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\Client;
+use App\Models\Company;
+use App\Models\Gest;
+use App\Models\Pret;
 use App\Models\Rezervarehotel;
 use App\Models\Trzdetfact;
 use App\Models\Trznp;
@@ -16,20 +19,73 @@ use App\Services\RezervareHotelService;
 
 class OrderService
 {
+
+    protected $nrGest = 10101;
+    protected $vatRate = 11;
+
     public function saveOrder(array $orderInfo, RezervareHotelService $rezervarehotelService)
     {
         $orderBookingInfo = $orderInfo['custom_info'];
         $clientInfo = $orderInfo['billing'];
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
-        $invoiceNo ='FA1'.date('Y').'01'.str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
-
+        
+        $seria = $this->getSerie();
+        $number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
+        $invoiceNo ='FA1'.date('y').$this->nrGest.$number;
+       
+        $rezervare = null;
+        $trznp = null;
+        $trzfact = null;
         foreach ($orderInfo['items'] as $item) {
-            $bookedRooms = $this->processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService, $invoiceNo);
-        }
-        $this->generateInvoice($orderInfo, $invoiceNo);
+            $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
+            
+            $hotelId = $item['product_meta_input']['_hotel_id'][0];
+            $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
+            $start = new \DateTime($orderBookingInfo['start_date']);
+            $end = new \DateTime($orderBookingInfo['end_date']);
+            $pret = $item['subtotal'] / $item['quantity'];
+            $numberOfNights = $start->diff($end)->days;
+             
+            $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
+            $roomNumber = $rezervarehotelService->getRoomNumber(
+                $freeRoomsIds,
+                $orderBookingInfo['start_date'],
+                $orderBookingInfo['end_date'],
+                $hotelId
+            );
 
+            if (is_array($roomNumber) && !empty($roomNumber)) {
+                $selectedRoom = reset($roomNumber);
+            } else {
+                throw new \Exception('No available room found for the given criteria.');
+            }
+         
+
+            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom);
+
+            // Only create trznp and trzfact for the first item (after first rezervare is created)
+            if ($trznp === null && $rezervare) {
+                $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
+                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $rezervare->idrezervarehotel,  $trznp->nrnpint);
+            }
+
+            $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom,$trzfact, $item['product_meta_input']['_hotel_room_type']);
+        }
+
+        $this->generateInvoice($orderInfo, $invoiceNo);
         return true;
+    }
+
+    public function getNrf()
+    {
+        $nrf = Gest::where('nrgest', $this->nrGest)->first()->nrf;
+        return $nrf+1;
+    }
+
+    public function getSerie()
+    {
+        //return  new Company()->first()->serie;
     }
 
     private function findOrCreateClient($clientInfo)
@@ -53,36 +109,13 @@ class OrderService
         return $client;
     }
 
-    private function processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, RezervareHotelService $rezervarehotelService, $invoiceNo)
+    private function processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $roomType)
     {
-        $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
-        $hotelId = $item['product_meta_input']['_hotel_id'][0];
-        $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
-        $start = new \DateTime($orderBookingInfo['start_date']);
-        $end = new \DateTime($orderBookingInfo['end_date']);
-        $pret = $item['subtotal'] / $item['quantity'];
-        $numberOfNights = $start->diff($end)->days;
-        $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
-    
-        $roomNumber = $rezervarehotelService->getRoomNumber(
-            $freeRoomsIds,
-            $orderBookingInfo['start_date'],
-            $orderBookingInfo['end_date'],
-            $hotelId
-        );
-        if (is_array($roomNumber) && !empty($roomNumber)) {
-            $selectedRoom = reset($roomNumber);
-        } else {
-            // Handle the case where no room is available
-            throw new \Exception('No available room found for the given criteria.');
-        }
-        $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom);
-        $trznp = $this->createTrznp($client, $item['subtotal'], $rezervare->idrezervarehotel);
-        $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel,$trznp,$tipCamera, $item['quantity']);
-        $this->createTrzfact($client, $item['subtotal'], $rezervare->idrezervarehotel, $invoiceNo);
-        $this->createTrzdetfact($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
-        $bookedRooms[] = $selectedRoom;
-        return $bookedRooms;
+    // Add parameters: $rezervare, $trznp, $tipCamera, $selectedRoom
+    $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
+    $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType);
+    $bookedRooms[] = $selectedRoom;
+    return $bookedRooms;
     }
 
     private function createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $roomNumber)
@@ -115,7 +148,7 @@ class OrderService
         $trznp = new Trznp();
         $trznp->spaid = $client->spaid;
         $trznp->totalron = $pret;
-        $trznp->tva19 = $pret * 0.19;
+        $trznp->tva19 = $pret - $this->getVatFromPrice($pret);
         $trznp->data = date('Y-m-d H:i:s');
         $trznp->compid = 'website';
         $trznp->obscui = 'intern';
@@ -148,35 +181,56 @@ class OrderService
         return $trzdetnp;
     }
 
-    public function createTrzfact(client $client, $pret,  $invoiceNumber){
+    public function createTrzfact(client $client, $pret, $trznpid){
         $trzfact = new Trzfact();
         $trzfact->idfirma = 1;
         $trzfact->nrfactfisc = ' ';
         $trzfact->nrdep = 1;
-        $trzfact->nrgest = 1;
+        $trzfact->nrgest = $this->nrGest;
         $trzfact->idcl = $client->spaid;
-        $trzfact->stotalron = $pret-( $pret * 0.19);
-        $trzfact->tva = $pret * 0.19;
+        $trzfact->stotalron = $pret- $this->getVatFromPrice($pret);
+        $trzfact->tva = $this->getVatFromPrice($pret);
         $trzfact->cotatva = -1;
         $trzfact->totalron = $pret;
         $trzfact->sold = $pret;
         $trzfact->tipv = 'RON';
         $trzfact->nume = $client->den . ' ' . $client->prenume;
-        $trzfact->cnp = $client->cnp;
+        $trzfact->cnp = '000000000000';
         $trzfact->datafact = date('Y-m-d');
         $trzfact->datascad = date('Y-m-d');
         $trzfact->data = date('Y-m-d');
         $trzfact->compid = 'Website';
         $trzfact->tip='CP';
-        $trzfact->nrfactspec = $invoiceNumber;
-        $trzfact->costtot = $pret;
+        $trzfact->nrfactspec = $this->getNrf();
+        $trzfact->idpers = 0;
+        $trzfact->curseur = 0.0000;
+        $trzfact->cursusd = 0.0000;
+        $trzfact->nrnp = $trznpid;
         $trzfact->save();
         return $trzfact;
     }
 
-    public function createTrzdetfact ($client, $pret, $idrezervarehotel, $trznp, $tipCamera, $quantity){
+    public function createTrzdetfact ($client, $pret,  $quantity,$nrFact, $roomType){
+
+        $price = Pret::where('tipcamera', $roomType)->first();
+
         $trzdetfact = new Trzdetfact();
         $trzdetfact->idfirma = 1;
+        $trzdetfact->nrfact = $nrFact;
+        $trzdetfact->idcl = $client->spaid;
+        $trzdetfact->clasa = $price->clasa ;
+        $trzdetfact->grupa = $price->grupa;
+        $trzdetfact->art = $price->art;
+        $trzdetfact->cant = $quantity;
+        $trzdetfact->cantf = $quantity;
+        $trzdetfact->preturon = $pret / $quantity;
+        $trzdetfact->valoare = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
+        $trzdetfact->tva = $this->getVatFromPrice($pret);
+        $trzdetfact->data = date('Y-m-d');
+        $trzdetfact->tva =  $this->vatRate;
+        $trzdetfact->compid = 'website';
+        $trzdetfact->idpers = '0';
+        $trzdetfact->cotatva = $this->vatRate/100;
         $trzdetfact->save();
         return $trzdetfact;
     }
@@ -204,7 +258,7 @@ class OrderService
         $data['totalWithoutTax'] =  $data['total'] -$data['totalTax'];
         $pdf = Pdf::loadView('invoice', $data);
 
-        $invoiceDir = storage_path('invoices'. '/'.date('Y').'/'.date('m'));
+    $invoiceDir = storage_path('invoices'. '/'.date('y').'/'.date('m'));
         if (!file_exists($invoiceDir)) {
             mkdir($invoiceDir, 0777, true);
         }
@@ -233,5 +287,16 @@ class OrderService
             return false;
         }
         return true;
+    }
+
+        /**
+     * Calculate the VAT value from a price, with VAT set to 11%.
+     *
+     * @param float|int $price
+     * @return float
+     */
+    public function getVatFromPrice($priceWithVAT)
+    {
+        return  $priceWithVAT / (1 + ($this->vatRate / 100));
     }
 }
