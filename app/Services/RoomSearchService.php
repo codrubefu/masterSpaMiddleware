@@ -82,12 +82,35 @@ class RoomSearchService
             }
         }
         $grouped = $this->groupRooms($availableCombinations);
-        $groupedArray = array_values($grouped);
-        $total = count($groupedArray);
+        $ones = [];
+        $twos = [];
+        $mixed = [];
+        foreach ($grouped as $item) {
+            $hotels = $item['hotels'];
+            if (preg_match('/^1+$/', $hotels)) {
+                $ones[] = $item;
+            } elseif (preg_match('/^2+$/', $hotels)) {
+                $twos[] = $item;
+            } else {
+                $mixed[] = $item;
+            }
+        }
+
+        // Interleave ones and twos for balanced pages
+        $interleaved = [];
+        $max = max(count($ones), count($twos));
+        for ($i = 0; $i < $max; $i++) {
+            if (isset($ones[$i])) $interleaved[] = $ones[$i];
+            if (isset($twos[$i])) $interleaved[] = $twos[$i];
+        }
+        // Add mixed at the end
+        $finalArray = array_merge($interleaved, $mixed);
+
+        $total = count($finalArray);
         $page = max(1, (int)$page);
         $perPage = max(1, (int)$perPage);
         $offset = ($page - 1) * $perPage;
-        $paginated = array_slice($groupedArray, $offset, $perPage);
+        $paginated = array_slice($finalArray, $offset, $perPage);
         return [
             'data' => $paginated,
             'pagination' => [
