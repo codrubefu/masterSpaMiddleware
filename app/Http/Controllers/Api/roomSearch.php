@@ -26,13 +26,17 @@ class roomSearch extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $numberOfRooms = (int) $request->input('number_of_rooms', 1);
+        $page = (int) $request->input('page', 1);
+        $perPage = (int) $request->input('per_page', 10);
 
         $availableCombinations = $this->roomSearchService->searchAvailableRoomCombinations(
             $adults,
             $kids,
             $startDate,
             $endDate,
-            $numberOfRooms
+            $numberOfRooms,
+            $page,
+            $perPage
         );
 
         return response()->json($availableCombinations);

@@ -29,7 +29,7 @@ class RoomSearchService
         }
         return $distribution;
     }
-    public function searchAvailableRoomCombinations($adults, $kids, $startDate, $endDate, $numberOfRooms)
+    public function searchAvailableRoomCombinations($adults, $kids, $startDate, $endDate, $numberOfRooms, $page = 1, $perPage = 10)
     {
         // Step 1: Get all rooms
         $rooms = Camerehotel::with('pret')
@@ -81,7 +81,22 @@ class RoomSearchService
                 $availableCombinations[] = $combo;
             }
         }
-        return $this->groupRooms($availableCombinations);
+        $grouped = $this->groupRooms($availableCombinations);
+        $groupedArray = array_values($grouped);
+        $total = count($groupedArray);
+        $page = max(1, (int)$page);
+        $perPage = max(1, (int)$perPage);
+        $offset = ($page - 1) * $perPage;
+        $paginated = array_slice($groupedArray, $offset, $perPage);
+        return [
+            'data' => $paginated,
+            'pagination' => [
+                'total' => $total,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => (int) ceil($total / $perPage),
+            ]
+        ];
     }
 
     private function groupRooms($availableCombinations): array
