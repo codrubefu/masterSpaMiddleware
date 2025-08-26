@@ -22,7 +22,7 @@ class OrderService
         $clientInfo = $orderInfo['billing'];
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
-        $invoiceNo ='FA'.date('Y').str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        $invoiceNo ='FA1'.date('Y').'01'.str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
 
         foreach ($orderInfo['items'] as $item) {
             $bookedRooms = $this->processOrderItem($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService, $invoiceNo);
