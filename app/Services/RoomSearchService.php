@@ -100,8 +100,8 @@ class RoomSearchService
         $interleaved = [];
         $max = max(count($ones), count($twos));
         for ($i = 0; $i < $max; $i++) {
-            if (isset($ones[$i])) $interleaved[] = $ones[$i];
             if (isset($twos[$i])) $interleaved[] = $twos[$i];
+            if (isset($ones[$i])) $interleaved[] = $ones[$i];
         }
         // Add mixed at the end
         $finalArray = array_merge($interleaved, $mixed);
