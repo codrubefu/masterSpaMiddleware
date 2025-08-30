@@ -162,6 +162,7 @@ class OrderService
 
     private function updateHotelToClient($client, $hotel)
     {
+       
         if (!$client) {
             return null;
         }
@@ -171,6 +172,7 @@ class OrderService
             $client->hotel = '1~Hotel Royal';
         }
         $client->save();
+         dd($client);
         return $client;
     }
 
