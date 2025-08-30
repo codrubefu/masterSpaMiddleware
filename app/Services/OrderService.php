@@ -80,7 +80,7 @@ class OrderService
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
 
-        $this->generateInvoice($orderInfo, $invoiceNo, $this->getCompany());
+        $this->generateInvoice($orderInfo, $invoiceNo,$clientInfo, $this->getCompany());
         $this->updateNrf();
         return true;
     }
@@ -296,16 +296,15 @@ class OrderService
         return $trzdetfact;
     }
 
-    public function generateInvoice($orderBookingInfo, $invoiceNo,$company)
+    public function generateInvoice($orderBookingInfo, $invoiceNo, $clientInfo, $company)
     {
         $data = ['title' => 'Master Hotel'];
         $data['spaces'] = 14 - count($orderBookingInfo['items']);
         $data['nrfactura'] =  $invoiceNo;
         $data['data'] = date('Y-m-d');
         $data['data_scadenta'] = date('Y-m-d');
-        $data['client'] = $orderBookingInfo['billing'];
+        $data['client'] = $clientInfo;
         $isPj = false;
-        $clientInfo = $orderBookingInfo['billing'];
         if ($clientInfo['_billing_company_details'] == 1) {
             $isPj = true;
         }
