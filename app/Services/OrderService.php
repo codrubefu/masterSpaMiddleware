@@ -45,6 +45,8 @@ class OrderService
         $rezervare = null;
         $trznp = null;
         $trzfact = null;
+        Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
+
         foreach ($orderInfo['items'] as $item) {
             $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
 
@@ -62,6 +64,7 @@ class OrderService
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
+            Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
 
             $this->updateHotelToClient($client, $hotelId);
 
