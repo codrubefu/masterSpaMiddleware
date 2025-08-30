@@ -75,7 +75,7 @@ class OrderService
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
                 $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
-                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $rezervare->idrezervarehotel,  $trznp->nrnpint);
+                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $rezervare->idrezervarehotel,  $trznp->nrnpint, $invoiceNo);
             }
 
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
@@ -243,11 +243,14 @@ class OrderService
         $trzdetnp->dataactiv = date('Y-m-d H:i:s');
         $trzdetnp->tipf = 'Hotel';
         $trzdetnp->idrezervarehotel = $idrezervarehotel;
+        $trzdetnp->cardid = 0;
+        $trzdetnp->idprog = 0;
+        $trzdetnp->idtrz = 0;
         $trzdetnp->save();
         return $trzdetnp;
     }
 
-    public function createTrzfact(client $client, $pret, $trznpid)
+    public function createTrzfact(client $client, $pret, $trznpid,$invoiceNo)
     {
         $trzfact = new Trzfact();
         $trzfact->idfirma = 1;
@@ -255,8 +258,8 @@ class OrderService
         $trzfact->nrdep = 1;
         $trzfact->nrgest = $this->nrGest;
         $trzfact->idcl = $client->spaid;
-        $trzfact->stotalron = $pret - $this->getVatFromPrice($pret);
-        $trzfact->tva = $this->getVatFromPrice($pret);
+        $trzfact->stotalron = $this->getVatFromPrice($pret);
+        $trzfact->tva =  $pret - $this->getVatFromPrice($pret);
         $trzfact->cotatva = -1;
         $trzfact->totalron = $pret;
         $trzfact->sold = $pret;
@@ -268,7 +271,7 @@ class OrderService
         $trzfact->data = date('Y-m-d');
         $trzfact->compid = 'Website';
         $trzfact->tip = 'CP';
-        $trzfact->nrfactspec = $this->getNrf();
+        $trzfact->nrfactspec = invoiceNo;
         $trzfact->idpers = 0;
         $trzfact->curseur = 0.0000;
         $trzfact->cursusd = 0.0000;
@@ -293,7 +296,7 @@ class OrderService
         $trzdetfact->cantf = $quantity;
         $trzdetfact->preturon = $pret / $quantity;
         $trzdetfact->valoare = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
-        $trzdetfact->tva = $this->getVatFromPrice($pret);
+        //$trzdetfact->tva = $this->getVatFromPrice($pret);
         $trzdetfact->data = date('Y-m-d');
         $trzdetfact->tva =  $this->vatRate;
         $trzdetfact->compid = 'Website';
