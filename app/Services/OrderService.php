@@ -62,7 +62,7 @@ class OrderService
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
-            $this->updateHotelToClient($client->spaid, $hotelId);
+            $this->updateHotelToClient($client, $hotelId);
             if (is_array($roomNumber) && !empty($roomNumber)) {
                 $selectedRoom = reset($roomNumber);
             } else {
@@ -160,9 +160,8 @@ class OrderService
     }
 
 
-    private function updateHotelToClient($clientID, $hotel)
+    private function updateHotelToClient($client, $hotel)
     {
-        $client = Client::where('spaid',  $clientID)->first();
         if (!$client) {
             // Optionally log or throw an exception
             return null;
