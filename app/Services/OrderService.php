@@ -282,7 +282,7 @@ class OrderService
         $trzfact->cursusd = 0.0000;
         $trzfact->nrnp = $trznpid;
         $trzfact->save();
-        $trzdetnp->refresh();
+        $trzfact->refresh();
         return $trzfact;
     }
 
