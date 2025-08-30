@@ -163,7 +163,6 @@ class OrderService
     private function updateHotelToClient($client, $hotel)
     {
         if (!$client) {
-            // Optionally log or throw an exception
             return null;
         }
         if ($hotel == 1) {
