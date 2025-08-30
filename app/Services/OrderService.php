@@ -159,8 +159,13 @@ class OrderService
             $client->iban       = $clientInfo['_billing_cont_iban'];
         }
         $client->save();
-        $client->refresh();
+       
         Log::info('Client created or updated', ['client_id' => $client->spaid]);
+        try {
+            $client->refresh();
+        } catch (\Exception $e) {
+            Log::error('Error refreshing client', ['client_id' => $client->spaid, 'error' => $e->getMessage()]);
+        }
         return $client;
     }
 
