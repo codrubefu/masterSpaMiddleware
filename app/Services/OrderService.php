@@ -162,7 +162,7 @@ class OrderService
 
     private function updateHotelToClient($client, $hotel)
     {
-
+        Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotel]);
         if ($hotel == 1) {
             $client->hotel = '1~Hotel Noblesse';
         } else {
