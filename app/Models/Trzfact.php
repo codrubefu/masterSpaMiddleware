@@ -9,7 +9,8 @@ class Trzfact extends Model
     protected $table = 'trzfact';
     protected $primaryKey = 'nrfact';
     public $timestamps = false;
-
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'nrfact',
         'idfirma',

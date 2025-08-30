@@ -13,7 +13,8 @@ class Client extends Model
     protected $table = 'client';
     protected $primaryKey = 'spaid';
     public $timestamps = false;
-
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'cnpcui',
         'den',

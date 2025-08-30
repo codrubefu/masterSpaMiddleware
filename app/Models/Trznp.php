@@ -12,7 +12,8 @@ class Trznp extends Model
     protected $table = 'trznp';
     protected $primaryKey = 'nrnpint';
     public $timestamps = false;
-
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'nrnpint',
         'spaid',

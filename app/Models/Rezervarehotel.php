@@ -12,7 +12,8 @@ class Rezervarehotel extends Model
     protected $table = 'rezervarehotel';
     protected $primaryKey = 'idrezervarehotel';
     public $timestamps = false;
-
+    public $incrementing = true;
+    protected $keyType = 'int';
     protected $fillable = [
         'idcl',
         'idclagentie1',
