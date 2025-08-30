@@ -172,7 +172,6 @@ class OrderService
             $client->hotel = '1~Hotel Royal';
         }
         $client->save();
-         dd($client);
         return $client;
     }
 
