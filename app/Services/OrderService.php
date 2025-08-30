@@ -162,6 +162,7 @@ class OrderService
 
     private function updateHotelToClient($client, $hotel)
     {
+        dd($client);
         if (!$client) {
             return null;
         }
