@@ -62,7 +62,9 @@ class OrderService
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
+
             $this->updateHotelToClient($client, $hotelId);
+
             if (is_array($roomNumber) && !empty($roomNumber)) {
                 $selectedRoom = reset($roomNumber);
             } else {
@@ -251,7 +253,6 @@ class OrderService
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
         $trzdetnp->save();
-        $trzdetnp->refresh();
         return $trzdetnp;
     }
 
@@ -308,7 +309,6 @@ class OrderService
         $trzdetfact->idpers = '0';
         $trzdetfact->cotatva = $this->vatRate / 100;
         $trzdetfact->save();
-        $trzdetfact->refresh();
         return $trzdetfact;
     }
 
