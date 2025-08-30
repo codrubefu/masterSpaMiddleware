@@ -162,7 +162,7 @@ class OrderService
             ->first();
 
 
-        $client->hotel      = $hotel;
+        $client->hotel = $hotel ?? 1;
         $client->save();
         return $client;
     }
