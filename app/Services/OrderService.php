@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Client;
-use App\Models\Company;
 use App\Models\Gest;
 use App\Models\Pret;
 use App\Models\Rezervarehotel;
@@ -11,11 +10,14 @@ use App\Models\Trzdetfact;
 use App\Models\Trznp;
 use App\Models\Trzdetnp;
 use App\Models\Trzfact;
+use App\Models\Company;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Mail\Message;
 use App\Services\RezervareHotelService;
+use App\Helper\Judet;
+
 
 class OrderService
 {
@@ -27,6 +29,11 @@ class OrderService
     {
         $orderBookingInfo = $orderInfo['custom_info'];
         $clientInfo = $orderInfo['billing'];
+        foreach ($orderInfo['meta_data'] as $key => $value) {
+            if (strpos($value['key'], '_billing_') !== false) {
+                $clientInfo[$value['key']] = $value['value'];
+            }
+        }
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
 
@@ -73,7 +80,8 @@ class OrderService
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
 
-        $this->generateInvoice($orderInfo, $invoiceNo);
+        $this->generateInvoice($orderInfo, $invoiceNo, $this->getCompany());
+        $this->updateNrf();
         return true;
     }
 
@@ -83,9 +91,22 @@ class OrderService
         return $nrf + 1;
     }
 
+    public function updateNrf()
+    {
+        $nrf = Gest::where('nrgest', $this->nrGest)->first();
+        $nrf->nrf = $nrf->nrf + 1;
+        $nrf->save();
+    }
+
     public function getSerie()
     {
-        //return  new Company()->first()->serie;
+        $company = Company::where('idfirma', 1)->first();
+        return  $company->serie;
+    }
+
+    public function getCompany()
+    {
+      return Company::where('idfirma', 1)->first();
     }
 
     private function findOrCreateClient($clientInfo)
@@ -93,17 +114,21 @@ class OrderService
         $client = Client::where('email',  $clientInfo['email'])
             ->where('mobilcontact', $clientInfo['phone'])
             ->first();
-
         if (!$client) {
             $client = new Client();
             $client->email = $clientInfo['email'];
             $client->mobilcontact = $clientInfo['phone'];
         }
+        $isPj = false;
+        if ($clientInfo['_billing_company_details'] == 1) {
+            $isPj = true;
+        }
+
         $client->den = $clientInfo['first_name'];
         $client->prenume = $clientInfo['last_name'];
         $client->adresa1 = $clientInfo['address_1'];
         $client->adresa2 = $clientInfo['address_2'];
-        $client->pj = false;
+        $client->pj = $isPj;
         $client->modp   = 'Website';
         $client->obscui   = 'independent';
         $client->startper  = date('Y-m-d H:i:s');
@@ -114,20 +139,30 @@ class OrderService
         $client->compid                = 'Website';
         $client->tip                = 'Website';
         $client->oras      = $clientInfo['city'];
+        $client->judet     = Judet::getNameByCode($clientInfo['state']);
+        if ($isPj) {
+            $client->cnpcui = $clientInfo['_billing_cui'];
+            $client->den = $clientInfo['_billing_company_name'];
+            $client->prenume = $clientInfo['first_name'].' '.$clientInfo['last_name'];
+            $client->obscui = $clientInfo['_billing_cui'];
+            $client->nrc = $clientInfo['_billing_reg_com'];
+            $client->banca = $clientInfo['_billing_banca'];
+            $client->iban = $clientInfo['_billing_cont_iban'];
+        }
         $client->save();
         $client->clhead = $client->spaid; // Self-referential
         $client->save();
         return $client;
     }
 
-    
-    private function updateHotelToClient($clientID,$hotel)
+
+    private function updateHotelToClient($clientID, $hotel)
     {
         $client = Client::where('spaid',  $clientID)
             ->first();
 
 
-        $client->hotel      = $hotel; 
+        $client->hotel      = $hotel;
         $client->save();
         return $client;
     }
@@ -261,14 +296,29 @@ class OrderService
         return $trzdetfact;
     }
 
-    public function generateInvoice($orderBookingInfo, $invoiceNo)
+    public function generateInvoice($orderBookingInfo, $invoiceNo,$company)
     {
-        $data = ['title' => 'Welcome to Laravel PDF'];
+        $data = ['title' => 'Master Hotel'];
         $data['spaces'] = 14 - count($orderBookingInfo['items']);
         $data['nrfactura'] =  $invoiceNo;
         $data['data'] = date('Y-m-d');
         $data['data_scadenta'] = date('Y-m-d');
         $data['client'] = $orderBookingInfo['billing'];
+        $isPj = false;
+        $clientInfo = $orderBookingInfo['billing'];
+        if ($clientInfo['_billing_company_details'] == 1) {
+            $isPj = true;
+        }
+        if ($isPj) {
+            $data['client']['cnpcui'] = $clientInfo['_billing_cui'];
+            $data['client']['den'] = $clientInfo['_billing_company_name'];
+            $data['client']['prenume'] = $clientInfo['first_name'].' '.$clientInfo['last_name'];
+            $data['client']['obscui'] = $clientInfo['_billing_cui'];
+            $data['client']['nrc'] = $clientInfo['_billing_reg_com'];
+            $data['client']['banca'] = $clientInfo['_billing_banca'];
+            $data['client']['iban'] = $clientInfo['_billing_cont_iban'];
+        }
+        $data['company'] = $company;
         foreach ($orderBookingInfo['items'] as $item) {
             $data['items'][] = [
                 'name' => $item['product_meta_input']['_hotel_room_type_long'][0],

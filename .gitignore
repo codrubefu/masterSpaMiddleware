@@ -5,6 +5,7 @@
 /public/storage
 /storage/*.key
 /storage/*.pdf
+/storage/invoices
 /vendor
 .env
 .env.backup

@@ -48,18 +48,18 @@
   <table class="no-border">
     <tr class="header-info">
       <td style="width: 30%">
-        <strong>CORILUC SRL</strong><br>
-        Str. Schitul Troianu nr. 5, Râmnicu Vâlcea, Vâlcea<br>
-        C.U.I.: RO22394283<br>
-        Nr. Reg. Com.: J38/890/2007<br>
-        Cont: RO19BTRL03901202969267XX<br>
-        Banca: Banca Transilvania
+        <strong>{{ $company->den }}</strong><br>
+        {{ $company->adresa1 }}<br>
+        C.U.I.: {{ $company->cui }}<br>
+        Nr. Reg. Com.: {{ $company->cnpcui }}<br>
+        Cont: {{ $company->iban }}<br>
+        Banca: {{ $company->banca }}
       </td>
            <td style="width: 7%">
       </td>
       <td class="invoice-info" >
         <h2>FACTURA</h2>
-         <p style="text-align: left">
+         <p style="text-align: left">983
             Număr: {{ $nrfactura }}<br>
             Data: {{ $data }}<br>
             Scadent la: {{ $data_scadenta }}
@@ -71,13 +71,12 @@
         Denumire: Avion Test<br>
 
             <strong>Client:</strong> {{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}<br>
-            <strong>C.U.I.:</strong> 0000000000000<br>
+            <strong>C.U.I.:</strong> {{ $client['cnpcui'] ?? '00000000000' }}<br>
             <strong>E-mail:</strong> {{ $client['email'] ?? '' }}<br>
             <strong>Adresă:</strong> {{ $client['address_1'] ?? '' }} {{ $client['address_2'] ?? '' }} {{ $client['city'] ?? '' }}<br>
-            <!--
-            <strong>Cont</strong>: RO19BTRL03901202969267XX<br>
-            <strong>Banca:</strong> Banca Transilvania
-            -->
+            
+            <strong>Cont</strong>: {{ $client['iban'] ?? '' }}<br>
+            <strong>Banca:</strong> {{ $client['banca'] ?? '' }}
        </td>
     </tr>
   </table>
@@ -149,10 +148,8 @@
                     <td style="border-left:0; height: 50px;text-align:center;width:20%">L.S</td>
                     <td>
                         Date privind expeditia:<br>
-                        Nume Delegat: <b>Befu Codrut</b><br>
-                        CNP: 0000000000000<br>
-                        CI seria si nr.: <b>AB123456</b> Eliberat de: <b>Politie</b><br>
-                        Mijloc de transport: <b>Autoturism</b> nr: <b>ABC123</b><br>
+                        Nume Delegat: <b>{{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}</b><br>
+                        CNP: {{ $client['cnpcui'] ?? '' }}<br>
                         Expedierea s-a efectuat prin prezenta noastra la: 22-12-2025<br>
                         Semnaturile:.....................................
                     </td>
