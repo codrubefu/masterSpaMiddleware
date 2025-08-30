@@ -160,7 +160,7 @@ class OrderService
         }
         $client->save();
         $client->refresh();
-    
+        Log::info('Client created or updated', ['client_id' => $client->spaid]);
         return $client;
     }
 
