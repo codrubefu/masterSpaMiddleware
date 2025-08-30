@@ -271,7 +271,7 @@ class OrderService
         $trzfact->data = date('Y-m-d');
         $trzfact->compid = 'Website';
         $trzfact->tip = 'CP';
-        $trzfact->nrfactspec = invoiceNo;
+        $trzfact->nrfactspec = $invoiceNo;
         $trzfact->idpers = 0;
         $trzfact->curseur = 0.0000;
         $trzfact->cursusd = 0.0000;
@@ -295,10 +295,9 @@ class OrderService
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
         $trzdetfact->preturon = $pret / $quantity;
-        $trzdetfact->valoare = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
-        //$trzdetfact->tva = $this->getVatFromPrice($pret);
+        $trzdetfact->valoare = $this->getVatFromPrice($pret); 
+        $trzdetfact->tva = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
         $trzdetfact->data = date('Y-m-d');
-        $trzdetfact->tva =  $this->vatRate;
         $trzdetfact->compid = 'Website';
         $trzdetfact->idpers = '0';
         $trzdetfact->cotatva = $this->vatRate / 100;
