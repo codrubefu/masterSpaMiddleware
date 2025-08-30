@@ -154,6 +154,7 @@ class OrderService
             $client->iban       = $clientInfo['_billing_cont_iban'];
         }
         $client->save();
+        $client->refresh();
         $client->clhead = $client->spaid; // Self-referential
         $client->save();
         return $client;
@@ -169,6 +170,7 @@ class OrderService
             $client->hotel = '1~Hotel Royal';
         }
         $client->save();
+        $client->refresh();
         return $client;
     }
 
@@ -203,6 +205,7 @@ class OrderService
         $rezervare->idfirma = 1;
         $rezervare->utilizator = 'Web';
         $rezervare->save();
+        $rezervare->refresh();
         return $rezervare;
     }
 
@@ -220,6 +223,7 @@ class OrderService
         $trznp->idrezervarehotel = $idrezervarehotel;
         $trznp->tip = 'Website';
         $trznp->save();
+        $trznp->refresh();
         return $trznp;
     }
 
@@ -245,6 +249,7 @@ class OrderService
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
         $trzdetnp->save();
+        $trzdetnp->refresh();
         return $trzdetnp;
     }
 
@@ -275,6 +280,7 @@ class OrderService
         $trzfact->cursusd = 0.0000;
         $trzfact->nrnp = $trznpid;
         $trzfact->save();
+        $trzdetnp->refresh();
         return $trzfact;
     }
 
@@ -300,6 +306,7 @@ class OrderService
         $trzdetfact->idpers = '0';
         $trzdetfact->cotatva = $this->vatRate / 100;
         $trzdetfact->save();
+        $trzdetfact->refresh();
         return $trzdetfact;
     }
 
