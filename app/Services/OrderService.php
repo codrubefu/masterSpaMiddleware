@@ -211,7 +211,10 @@ class OrderService
         $rezervare->idfirma = 1;
         $rezervare->utilizator = 'Web';
         $rezervare->save();
-        $rezervare->refresh();
+        // Get the last rezervare for this client (by primary key desc)
+        $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
+            ->orderByDesc('idrezervarehotel')
+            ->first();
         return $rezervare;
     }
 
@@ -229,7 +232,9 @@ class OrderService
         $trznp->idrezervarehotel = $idrezervarehotel;
         $trznp->tip = 'Website';
         $trznp->save();
-        $trznp->refresh();
+        $trznp = Trznp::where('spaid',  $client->spaid)
+            ->orderByDesc('nrnpint')
+            ->first();
         return $trznp;
     }
 
@@ -285,7 +290,9 @@ class OrderService
         $trzfact->cursusd = 0.0000;
         $trzfact->nrnp = $trznpid;
         $trzfact->save();
-        $trzfact->refresh();
+        $trzfact = Trzfact::where('idcl',  $client->spaid)
+            ->orderByDesc('nrfact')
+            ->first();
         return $trzfact;
     }
 
