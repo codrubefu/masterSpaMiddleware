@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helper\Country;
 use App\Models\Client;
 use App\Models\Gest;
 use App\Models\Pret;
@@ -140,6 +141,8 @@ class OrderService
         $client->tip                = 'Website';
         $client->oras      = $clientInfo['city'];
         $client->judet     = Judet::getNameByCode($clientInfo['state']);
+        $client->tara      = Country::getNameByCode($clientInfo['country']);
+        $client->valuta    = 'RON';
         if ($isPj) {
             $client->cnpcui = $clientInfo['_billing_cui'];
             $client->den = $clientInfo['_billing_company_name'];
@@ -160,9 +163,12 @@ class OrderService
     {
         $client = Client::where('spaid',  $clientID)
             ->first();
-
-
-        $client->hotel = $hotel ?? 1;
+            if($hotel == 1){
+                $client->hotel = '1~Hotel Noblesse';
+            }else{
+                $client->hotel = '1~Hotel Royal';
+            }
+      
         $client->save();
         return $client;
     }
@@ -209,11 +215,12 @@ class OrderService
         $trznp->totalron = $pret;
         $trznp->tva19 = $pret - $this->getVatFromPrice($pret);
         $trznp->data = date('Y-m-d H:i:s');
-        $trznp->compid = 'website';
-        $trznp->obscui = 'intern';
-        $trznp->modp = 'Credit Card';
+        $trznp->compid = 'Website';
+        $trznp->obscui = 'independent';
+        $trznp->modp = 'Bank Card Web';
         $trznp->tipnp = 'Inside Services';
         $trznp->idrezervarehotel = $idrezervarehotel;
+        $trznp->tip = 'Website';
         $trznp->save();
         return $trznp;
     }
@@ -228,7 +235,7 @@ class OrderService
         $trzdetnp->preturon = $pret / $quantity;
         $trzdetnp->valoare = $pret;
         $trzdetnp->data = date('Y-m-d H:i:s');
-        $trzdetnp->compid = 'website';
+        $trzdetnp->compid = 'Website';
         $trzdetnp->pretfaradisc = $pret;
         $trzdetnp->valuta = 'RON';
         $trzdetnp->cursv = 1;
@@ -289,7 +296,7 @@ class OrderService
         $trzdetfact->tva = $this->getVatFromPrice($pret);
         $trzdetfact->data = date('Y-m-d');
         $trzdetfact->tva =  $this->vatRate;
-        $trzdetfact->compid = 'website';
+        $trzdetfact->compid = 'Website';
         $trzdetfact->idpers = '0';
         $trzdetfact->cotatva = $this->vatRate / 100;
         $trzdetfact->save();
