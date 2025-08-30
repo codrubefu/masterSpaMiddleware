@@ -125,33 +125,33 @@ class OrderService
             $isPj = true;
         }
 
-        $client->den = $clientInfo['first_name'];
-        $client->prenume = $clientInfo['last_name'];
-        $client->adresa1 = $clientInfo['address_1'];
-        $client->adresa2 = $clientInfo['address_2'];
-        $client->pj = $isPj;
-        $client->modp   = 'Website';
-        $client->obscui   = 'independent';
-        $client->startper  = date('Y-m-d H:i:s');
-        $client->endper    = date('Y-m-d H:i:s');
-        $client->datan     = date('Y-m-d H:i:s');
+        $client->den        = $clientInfo['first_name'];
+        $client->prenume    = $clientInfo['last_name'];
+        $client->adresa1    = $clientInfo['address_1'];
+        $client->adresa2    = $clientInfo['address_2'];
+        $client->pj         = $isPj;
+        $client->modp       = 'Website';
+        $client->obscui     = 'independent';
+        $client->startper   = date('Y-m-d H:i:s');
+        $client->endper     = date('Y-m-d H:i:s');
+        $client->datan      = date('Y-m-d H:i:s');
         $client->camera     = 0;
         $client->datacreare = date('Y-m-d H:i:s');
-        $client->compid                = 'Website';
-        $client->tip                = 'Website';
-        $client->oras      = $clientInfo['city'];
-        $client->judet     = Judet::getNameByCode($clientInfo['state']);
-        $client->tara      = Country::getNameByCode($clientInfo['country']);
-        $client->valuta    = 'RON';
-        $client->hotel    = 'Extra';
+        $client->compid     = 'Website';
+        $client->tip        = 'Website';
+        $client->oras       = $clientInfo['city'];
+        $client->judet      = Judet::getNameByCode($clientInfo['state']);
+        $client->tara       = Country::getNameByCode($clientInfo['country']);
+        $client->valuta     = 'RON';
+        $client->hotel      = 'Extra';
         if ($isPj) {
-            $client->cnpcui = $clientInfo['_billing_cui'];
-            $client->den = $clientInfo['_billing_company_name'];
-            $client->prenume = $clientInfo['first_name'].' '.$clientInfo['last_name'];
-            $client->obscui = $clientInfo['_billing_cui'];
-            $client->nrc = $clientInfo['_billing_reg_com'];
-            $client->banca = $clientInfo['_billing_banca'];
-            $client->iban = $clientInfo['_billing_cont_iban'];
+            $client->cnpcui     = $clientInfo['_billing_cui'];
+            $client->den        = $clientInfo['_billing_company_name'];
+            $client->prenume    = $clientInfo['first_name'].' '.$clientInfo['last_name'];
+            $client->obscui     = $clientInfo['_billing_cui'];
+            $client->nrc        = $clientInfo['_billing_reg_com'];
+            $client->banca      = $clientInfo['_billing_banca'];
+            $client->iban       = $clientInfo['_billing_cont_iban'];
         }
         $client->save();
         $client->clhead = $client->spaid; // Self-referential
@@ -162,10 +162,7 @@ class OrderService
 
     private function updateHotelToClient($client, $hotel)
     {
-       
-        if (!$client) {
-            return null;
-        }
+
         if ($hotel == 1) {
             $client->hotel = '1~Hotel Noblesse';
         } else {
