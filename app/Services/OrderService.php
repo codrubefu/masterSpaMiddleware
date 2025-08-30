@@ -160,12 +160,9 @@ class OrderService
         }
         $client->save();
        
-        Log::info('Client created or updated', ['client_id' => $client->spaid]);
-        try {
-            $client->refresh();
-        } catch (\Exception $e) {
-            Log::error('Error refreshing client', ['client_id' => $client->spaid, 'error' => $e->getMessage()]);
-        }
+        $client = Client::where('email',  $clientInfo['email'])
+                ->where('mobilcontact', $clientInfo['phone'])
+                ->first();
         return $client;
     }
 
