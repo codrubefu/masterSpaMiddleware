@@ -37,7 +37,7 @@ class OrderService
         }
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
-
+       
         $seria = $this->getSerie();
         $number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
         $invoiceNo = 'FA1' . date('y') . $this->nrGest . $number;
@@ -143,7 +143,7 @@ class OrderService
         $client->judet     = Judet::getNameByCode($clientInfo['state']);
         $client->tara      = Country::getNameByCode($clientInfo['country']);
         $client->valuta    = 'RON';
-         $client->hotel    = 'Extra';
+        $client->hotel    = 'Extra';
         if ($isPj) {
             $client->cnpcui = $clientInfo['_billing_cui'];
             $client->den = $clientInfo['_billing_company_name'];
@@ -162,18 +162,19 @@ class OrderService
 
     private function updateHotelToClient($clientID, $hotel)
     {
-        $client = Client::where('spaid',  $clientID)
-            ->first();
-            if($hotel == 1){
-                $client->hotel = '1~Hotel Noblesse';
-            }else{
-                $client->hotel = '1~Hotel Royal';
-            }
-      
+        $client = Client::where('spaid',  $clientID)->first();
+        if (!$client) {
+            // Optionally log or throw an exception
+            return null;
+        }
+        if ($hotel == 1) {
+            $client->hotel = '1~Hotel Noblesse';
+        } else {
+            $client->hotel = '1~Hotel Royal';
+        }
         $client->save();
         return $client;
     }
-
 
     private function processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $roomType)
     {
