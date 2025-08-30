@@ -143,6 +143,7 @@ class OrderService
         $client->judet     = Judet::getNameByCode($clientInfo['state']);
         $client->tara      = Country::getNameByCode($clientInfo['country']);
         $client->valuta    = 'RON';
+         $client->hotel    = 'Extra';
         if ($isPj) {
             $client->cnpcui = $clientInfo['_billing_cui'];
             $client->den = $clientInfo['_billing_company_name'];
