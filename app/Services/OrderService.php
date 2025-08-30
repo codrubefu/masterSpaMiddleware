@@ -156,7 +156,9 @@ class OrderService
         $client->save();
         $client->refresh();
         $client->clhead = $client->spaid; // Self-referential
+          
         $client->save();
+        $client->refresh();
         return $client;
     }
 
