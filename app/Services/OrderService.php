@@ -160,10 +160,7 @@ class OrderService
         }
         $client->save();
         $client->refresh();
-        $client->clhead = $client->spaid; // Self-referential
-          
-        $client->save();
-        $client->refresh();
+    
         return $client;
     }
 
@@ -176,8 +173,8 @@ class OrderService
         } else {
             $client->hotel = '1~Hotel Royal';
         }
+        $client->clhead = $client->spaid; // Self-referential
         $client->save();
-        $client->refresh();
         return $client;
     }
 
