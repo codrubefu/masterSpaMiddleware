@@ -313,8 +313,8 @@ class OrderService
         $trzdetfact->art = $item['meta_data'][0]['value'];
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
-        $trzdetfact->preturon = $pret / $quantity;
-        $trzdetfact->valoare = $this->getVatFromPrice($pret); 
+        $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity),2);
+        $trzdetfact->valoare = round($this->getVatFromPrice($pret)); 
         $trzdetfact->tva = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
         $trzdetfact->data = date('Y-m-d');
         $trzdetfact->compid = 'Website';
