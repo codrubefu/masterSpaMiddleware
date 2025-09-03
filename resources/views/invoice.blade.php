@@ -162,19 +162,15 @@
                             <tr>
                                 <td style="border-left:0;">TVA 21%</td>
                                 <td>{{ $totalWithoutTax }}</td>
-                                <td style="border-right:0;">{{ $totalTax }}</td>
+                                <td style="border-right:0;">0</td>
                             </tr>
                             
                             <tr>
-                                <td style="border-left:0;">TVA 19%</td>
+                                <td style="border-left:0;">TVA 11%</td>
                                 <td>0.00</td>
-                                <td style="border-right:0;">0.00</td>
+                                <td style="border-right:0;">{{ $totalTax }}</td>
                             </tr>
-                                <tr>
-                                <td  style="border-left:0;">TVA 9%</td>
-                                <td>0.00</td>
-                                <td style="border-right:0;">0.00</td>
-                            </tr>
+                               
                             <tr>
                                 <td style="border-left:0;">Sematura de primire</td>
                                 <td >
