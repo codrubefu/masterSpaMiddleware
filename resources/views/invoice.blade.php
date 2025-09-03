@@ -161,14 +161,14 @@
                             </tr>
                             <tr>
                                 <td style="border-left:0;">TVA 21%</td>
-                                <td>{{ $totalWithoutTax }}</td>
+                                <td>0.00</td>
                                 <td style="border-right:0;">0</td>
                             </tr>
                             
                             <tr>
                                 <td style="border-left:0;">TVA 11%</td>
-                                <td>0.00</td>
-                                <td style="border-right:0;">{{ $totalTax }}</td>
+                                 <th style="border-top:0;">{{ $totalWithoutTax }}</th>
+                                <th style="border-top:0;border-right:0">{{ $totalTax }}</th>
                             </tr>
                                
                             <tr>
