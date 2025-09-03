@@ -80,7 +80,8 @@ class OrderService
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
                 $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
-                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $rezervare->idrezervarehotel,  $trznp->nrnpint, $invoiceNo);
+
+                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp->nrnpint, $invoiceNo);
             }
 
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
@@ -184,7 +185,7 @@ class OrderService
     {
         // Add parameters: $rezervare, $trznp, $tipCamera, $selectedRoom
         $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
-        $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType);
+        $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType,$item);
         $bookedRooms[] = $selectedRoom;
         return $bookedRooms;
     }
@@ -265,6 +266,7 @@ class OrderService
 
     public function createTrzfact(client $client, $pret, $trznpid,$invoiceNo)
     {
+       
         $trzfact = new Trzfact();
         $trzfact->idfirma = 1;
         $trzfact->nrfactfisc = ' ';
@@ -293,21 +295,22 @@ class OrderService
         $trzfact = Trzfact::where('idcl',  $client->spaid)
             ->orderByDesc('nrfact')
             ->first();
+
         return $trzfact;
     }
 
-    public function createTrzdetfact($client, $pret,  $quantity, $nrFact, $roomType)
+    public function createTrzdetfact($client, $pret,  $quantity, $nrFact, $roomType, $item)
     {
 
         $price = Pret::where('tipcamera', $roomType)->first();
-
+       
         $trzdetfact = new Trzdetfact();
         $trzdetfact->idfirma = 1;
         $trzdetfact->nrfact = $nrFact;
         $trzdetfact->idcl = $client->spaid;
         $trzdetfact->clasa = $price->clasa;
         $trzdetfact->grupa = $price->grupa;
-        $trzdetfact->art = $price->art;
+        $trzdetfact->art = $item['meta_data'][0]['value'];
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
         $trzdetfact->preturon = $pret / $quantity;
