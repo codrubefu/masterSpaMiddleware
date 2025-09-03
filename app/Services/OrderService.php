@@ -330,6 +330,8 @@ class OrderService
         $data['data_scadenta'] = date('Y-m-d');
         $data['client'] = $clientInfo;
         $data['nrnp'] = $nrnp;
+        $data['data'] = date('d-m-Y');
+        $data['data_scadenta'] =date('d-m-Y');
         $isPj = false;
         if ($clientInfo['_billing_company_details'] == 1) {
             $isPj = true;

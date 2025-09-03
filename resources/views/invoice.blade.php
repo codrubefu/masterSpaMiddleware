@@ -149,7 +149,7 @@
                         Date privind expeditia:<br>
                         Nume Delegat: <b>{{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}</b><br>
                         CNP: {{ $client['cnpcui'] ?? '' }}<br>
-                        Expedierea s-a efectuat prin prezenta noastra la: 22-12-2025<br>
+                        Expedierea s-a efectuat prin prezenta noastra la: {{ $data }}<br>
                         Semnaturile:.....................................
                     </td>
                     <td  style="border-right:0; padding:0;">
