@@ -86,7 +86,7 @@ class OrderService
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
 
-        $this->generateInvoice($orderInfo, $invoiceNo,$clientInfo, $this->getCompany());
+        $this->generateInvoice($orderInfo, $invoiceNo,$clientInfo, $this->getCompany(),$trznp->nrnpint);
         $this->updateNrf();
         return true;
     }
@@ -321,7 +321,7 @@ class OrderService
         return $trzdetfact;
     }
 
-    public function generateInvoice($orderBookingInfo, $invoiceNo, $clientInfo, $company)
+    public function generateInvoice($orderBookingInfo, $invoiceNo, $clientInfo, $company, $nrnp)
     {
         $data = ['title' => 'Master Hotel'];
         $data['spaces'] = 14 - count($orderBookingInfo['items']);
@@ -329,6 +329,7 @@ class OrderService
         $data['data'] = date('Y-m-d');
         $data['data_scadenta'] = date('Y-m-d');
         $data['client'] = $clientInfo;
+        $data['nrnp'] = $nrnp;
         $isPj = false;
         if ($clientInfo['_billing_company_details'] == 1) {
             $isPj = true;
@@ -345,17 +346,20 @@ class OrderService
         $data['company'] = $company;
         foreach ($orderBookingInfo['items'] as $item) {
             $data['items'][] = [
-                'name' => $item['product_meta_input']['_hotel_room_type_long'][0],
+                'name' => $item['name'],
                 'quantity' => $item['quantity'],
                 'price' => $item['subtotal'] / $item['quantity'],
+                'pret_unit_no_vat' => round($this->getVatFromPrice($item['subtotal'] / $item['quantity']),2),
                 'total' => $item['subtotal'],
-                'tvaValue' => $item['subtotal'] * 0.19,
-                'tva' => 19, // Assuming a fixed tax rate of 19%
+                'tvaValue' => round($item['subtotal'] - $this->getVatFromPrice($item['subtotal']),2),
+                'total_no_vat' =>  round($this->getVatFromPrice($item['subtotal']),2),
+                'tva' => $this->vatRate, // Assuming a fixed tax rate of 19%
             ];
         }
+         $data['vatRate'] = $this->vatRate;
         $data['total'] = $orderBookingInfo['total'];
-        $data['totalTax'] = $orderBookingInfo['total'] * 0.19;
-        $data['totalWithoutTax'] =  $data['total'] - $data['totalTax'];
+        $data['totalTax'] = round($orderBookingInfo['total'] - $this->getVatFromPrice($data['total']),2);
+        $data['totalWithoutTax'] =  round($this->getVatFromPrice($data['total']),2);
         $pdf = Pdf::loadView('invoice', $data);
 
         $invoiceDir = storage_path('invoices' . '/' . date('y') . '/' . date('m'));

@@ -50,8 +50,8 @@
       <td style="width: 30%">
         <strong>{{ $company->den }}</strong><br>
         {{ $company->adresa1 }}<br>
-        C.U.I.: {{ $company->cui }}<br>
-        Nr. Reg. Com.: {{ $company->cnpcui }}<br>
+        C.U.I.: {{ $company->cnpcui }}<br>
+        Nr. Reg. Com.: {{ $company->nrc }}<br>
         Cont: {{ $company->iban }}<br>
         Banca: {{ $company->banca }}
       </td>
@@ -59,7 +59,8 @@
       </td>
       <td class="invoice-info" >
         <h2>FACTURA</h2>
-         <p style="text-align: left">983
+         <p style="text-align: left">
+            SERIE:ABC<br>
             Număr: {{ $nrfactura }}<br>
             Data: {{ $data }}<br>
             Scadent la: {{ $data_scadenta }}
@@ -68,8 +69,6 @@
       <td style="width: 7%">
       </td>
       <td style="width: 30%">
-        Denumire: Avion Test<br>
-
             <strong>Client:</strong> {{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}<br>
             <strong>C.U.I.:</strong> {{ $client['cnpcui'] ?? '00000000000' }}<br>
             <strong>E-mail:</strong> {{ $client['email'] ?? '' }}<br>
@@ -111,8 +110,8 @@
       <td style="border-bottom: 0px;border-top: 0px;">{{ $item['name'] ?? '' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="center">{{ $item['unit'] ?? 'BUC' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['quantity'] ?? '' }}</td>
-      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['price'] ?? '' }}</td>
-      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['total'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['pret_unit_no_vat'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['total_no_vat'] ?? '' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['tvaValue'] ?? '' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="center">{{ $item['tva'] ?? '' }}</td>
     </tr>
@@ -135,7 +134,7 @@
         <td style="border-top: 0px;"></td>
         <td colspan="7"> Achitat prin: Card Bancar <br>
              WEBSITE 
-             Nr. Nota 51400
+             Nr. Nota {{ $nrnp }}
         </td>
       </tr>
       <tr>
@@ -161,18 +160,18 @@
                                 <th style="border-top:0;border-right:0">{{ $totalTax }}</th>
                             </tr>
                             <tr>
-                                <td style="border-left:0;">TVA 19%</td>
+                                <td style="border-left:0;">TVA 21%</td>
                                 <td>{{ $totalWithoutTax }}</td>
                                 <td style="border-right:0;">{{ $totalTax }}</td>
                             </tr>
                             
                             <tr>
-                                <td style="border-left:0;">TVA 9%</td>
+                                <td style="border-left:0;">TVA 19%</td>
                                 <td>0.00</td>
                                 <td style="border-right:0;">0.00</td>
                             </tr>
                                 <tr>
-                                <td  style="border-left:0;">TVA 5%</td>
+                                <td  style="border-left:0;">TVA 9%</td>
                                 <td>0.00</td>
                                 <td style="border-right:0;">0.00</td>
                             </tr>
