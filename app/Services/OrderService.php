@@ -314,7 +314,7 @@ class OrderService
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
         $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity),2);
-        $trzdetfact->valoare = round($this->getVatFromPrice($pret)); 
+        $trzdetfact->valoare = round($this->getVatFromPrice($pret),2); 
         $trzdetfact->tva = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
         $trzdetfact->data = date('Y-m-d');
         $trzdetfact->compid = 'Website';
