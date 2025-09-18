@@ -88,8 +88,9 @@
         <th class="right">Cantitate</th>
         <th class="right">Preț unitar fără TVA (RON)</th>
         <th class="center">Cota TVA</th>
-        <th class="right">Valoare TVA (RON)</th>
         <th class="right">Valoare (RON)</th>
+        <th class="right">Valoare TVA (RON)</th>
+
       </tr>
       <tr>
         <td class="center">0</td>
@@ -99,7 +100,7 @@
         <td class="right">4</td>
         <td class="right">5</td>
         <td class="right">6</td>
-        <td class="right">7</th>
+        <td class="right">7</td>
       </tr>
     </thead>
     <tbody>
@@ -111,8 +112,9 @@
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['quantity'] ?? '' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['pret_unit_no_vat'] ?? '' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="center">{{ $item['tva'] ?? '' }}</td>
-      <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['tvaValue'] ?? '' }}</td>
+
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['total_no_vat'] ?? '' }}</td>
+            <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['tvaValue'] ?? '' }}</td>
     </tr>
    @endforeach
 
