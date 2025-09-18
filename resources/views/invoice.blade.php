@@ -78,7 +78,6 @@
        </td>
     </tr>
   </table>
-  <p style="text-align: right; font-weight: bold;"> Scadent la: 02‑Jun‑2025</p>
   <table>
     <thead>
       <tr>
