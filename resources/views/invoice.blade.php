@@ -78,6 +78,7 @@
        </td>
     </tr>
   </table>
+  <p style="text-align: right; font-weight: bold;"> Scadent la: {{ $data }}</p>
   <table>
     <thead>
       <tr>
