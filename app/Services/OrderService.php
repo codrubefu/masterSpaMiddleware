@@ -10,6 +10,7 @@ use App\Models\Rezervarehotel;
 use App\Models\Trzdetfact;
 use App\Models\Trznp;
 use App\Models\Trzdetnp;
+use App\Models\Trzdet;
 use App\Models\Trzfact;
 use App\Models\Company;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -184,7 +185,9 @@ class OrderService
     private function processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $roomType)
     {
         // Add parameters: $rezervare, $trznp, $tipCamera, $selectedRoom
-        $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
+        $trzdetnp = $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
+  
+        $this->createTrzdet($trzdetnp);
         $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType,$item);
         $bookedRooms[] = $selectedRoom;
         return $bookedRooms;
@@ -261,6 +264,9 @@ class OrderService
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
         $trzdetnp->save();
+        $trzdetnp = Trzdetnp::where('spaid',  $client->spaid)
+        ->orderByDesc('nrnp')
+        ->first();
         return $trzdetnp;
     }
 
@@ -375,6 +381,41 @@ class OrderService
         $pdf->save($fileName);
 
         $this->sendEmail($fileName, $orderBookingInfo);
+    }
+
+    protected function createTrzdet($trzdetnp)
+    {
+        $trzdet = new Trzdet();
+        $trzdet->idfirma = 1;
+        $trzdet->nrdoc = $trzdetnp->nrnp;
+        $trzdet->idcl = $trzdetnp->spaid;
+        $trzdet->art = $trzdetnp->art;
+        $trzdet->cant = $trzdetnp->cant;
+        $trzdet->pretueur = 0.00;
+        $trzdet->preturon = $trzdetnp->preturon;
+        $trzdet->valoare = $trzdetnp->valoare;
+        $trzdet->tva = null;
+        $trzdet->tip = 'NP';
+        $trzdet->data = date('Y-m-d H:i:s');
+        $trzdet->compid = $trzdetnp->compid;
+        $trzdet->idpers = $trzdetnp->idpers;
+        $trzdet->redproc = $trzdetnp->redproc ?? null;
+        $trzdet->cardid = $trzdetnp->cardid;
+        $trzdet->redabn = $trzdetnp->redabn ?? null;
+        $trzdet->pretfaradisc = $trzdetnp->pretfaradisc;
+        $trzdet->modp = 'Bank Card Web';
+        $trzdet->idprog = $trzdetnp->idprog;
+        $trzdet->idtrz = $trzdetnp->idtrz;
+        $trzdet->idrevc = 1;
+        $trzdet->valuta = 'RON';
+        $trzdet->cursv = 1.000;
+        $trzdet->datac = date('Y-m-d H:i:s');
+        $trzdet->cotatva = $this->vatRate / 100;
+        $trzdet->reinnoire = false;
+        $trzdet->cardb =  null;
+        $trzdet->idcldet = $trzdetnp->spaid;
+        $trzdet->save();
+        return $trzdet;
     }
 
     protected function sendEmail($invoice, $orderBookingInfo)
