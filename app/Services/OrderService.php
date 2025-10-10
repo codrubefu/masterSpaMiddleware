@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Mail\Message;
 use App\Services\RezervareHotelService;
 use App\Helper\Judet;
-
+use App\Models\Camerehotel;
 
 class OrderService
 {
@@ -41,7 +41,7 @@ class OrderService
        
         $seria = $this->getSerie();
         $number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
-        $invoiceNo = 'FA1' . date('y') . $this->nrGest . $number;
+        $invoiceNo = 'FA' . date('y') . $this->nrGest . $number;
 
         $rezervare = null;
         $trznp = null;
@@ -49,9 +49,10 @@ class OrderService
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
 
         foreach ($orderInfo['items'] as $item) {
-            $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
-
+            $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
+           
             $hotelId = $item['product_meta_input']['_hotel_id'][0];
+       
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
             $start = new \DateTime($orderBookingInfo['start_date']);
             $end = new \DateTime($orderBookingInfo['end_date']);
@@ -59,16 +60,19 @@ class OrderService
             $numberOfNights = $start->diff($end)->days;
 
             $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
+         
+            
             $roomNumber = $rezervarehotelService->getRoomNumber(
                 $freeRoomsIds,
                 $orderBookingInfo['start_date'],
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
+           
             Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
 
             $this->updateHotelToClient($client, $hotelId);
-
+          
             if (is_array($roomNumber) && !empty($roomNumber)) {
                 $selectedRoom = reset($roomNumber);
             } else {
@@ -76,7 +80,7 @@ class OrderService
             }
 
 
-            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom);
+            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, strpos(strtolower($item['meta_data'][0]['value']), 'single') !== false);
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
@@ -193,8 +197,12 @@ class OrderService
         return $bookedRooms;
     }
 
-    private function createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $roomNumber)
+    private function createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $roomNumber, $hotelId, $isSingle)
     {
+        $camera  = Camerehotel::where('idhotel', $hotelId)
+        ->where('nr', $roomNumber)
+        ->select('adultmax', 'kidmax')
+        ->first();
         $rezervare = new Rezervarehotel();
         $rezervare->idcl = $client->spaid;
         $rezervare->idclagentie1 = 0;
@@ -204,8 +212,8 @@ class OrderService
         $rezervare->camera = $roomNumber;
         $rezervare->tipcamera = $tipCamera;
         $rezervare->nrnopti = $numberOfNights;
-        $rezervare->nradulti = 2;
-        $rezervare->nrcopii = 0;
+        $rezervare->nradulti = $isSingle ? 1 : $camera->adultmax;
+        $rezervare->nrcopii = $orderBookingInfo['kids'] != 0 ? $camera->kidmax : 0;
         $rezervare->tipmasa = 'Fara MD';
         $rezervare->prettipmasa = $pret;
         $rezervare->pachet  = $tipCamera;
@@ -214,6 +222,7 @@ class OrderService
         $rezervare->total = $pret;
         $rezervare->idfirma = 1;
         $rezervare->utilizator = 'Web';
+        $rezervare->idhotel = $hotelId;
         $rezervare->save();
         // Get the last rezervare for this client (by primary key desc)
         $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
@@ -263,6 +272,7 @@ class OrderService
         $trzdetnp->cardid = 0;
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
+        $trzdetnp->idcldet = $client->spaid;
         $trzdetnp->save();
         $trzdetnp = Trzdetnp::where('spaid',  $client->spaid)
         ->orderByDesc('nrnp')
@@ -293,7 +303,7 @@ class OrderService
         $trzfact->compid = 'Website';
         $trzfact->tip = 'CP';
         $trzfact->nrfactspec = $invoiceNo;
-        $trzfact->idpers = 0;
+        $trzfact->idpers = 1;
         $trzfact->curseur = 0.0000;
         $trzfact->cursusd = 0.0000;
         $trzfact->nrnp = $trznpid;
@@ -301,7 +311,9 @@ class OrderService
         $trzfact = Trzfact::where('idcl',  $client->spaid)
             ->orderByDesc('nrfact')
             ->first();
-
+        $trznp = Trznp::where('spaid',  $trznpid)->first();
+        $trznp->nrfact = $trzfact->nrfact;
+        $trznp->save();
         return $trzfact;
     }
 
