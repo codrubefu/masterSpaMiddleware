@@ -69,12 +69,20 @@
       </td>
       <td style="width: 30%">
             <strong>Client:</strong> {{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}<br>
+            @if ($client['den'])
+              <strong>Denumire:</strong> {{ $client['den'] ?? '' }}<br>
+            @endif
+            @if ($client['cnpcui'])
             <strong>C.U.I.:</strong> {{ $client['cnpcui'] ?? '00000000000' }}<br>
+            @endif
             <strong>E-mail:</strong> {{ $client['email'] ?? '' }}<br>
             <strong>Adresă:</strong> {{ $client['address_1'] ?? '' }} {{ $client['address_2'] ?? '' }} {{ $client['city'] ?? '' }}<br>
-            
+            @if($client['iban'])
             <strong>Cont</strong>: {{ $client['iban'] ?? '' }}<br>
+            @endif
+            @if($client['banca']) 
             <strong>Banca:</strong> {{ $client['banca'] ?? '' }}
+            @endif
        </td>
     </tr>
   </table>
