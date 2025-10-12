@@ -312,6 +312,7 @@ class OrderService
             ->orderByDesc('nrfact')
             ->first();
         $trznp = Trznp::where('spaid',  $trznpid)->first();
+        dd($trznp);
         $trznp->nrfact = $trzfact->nrfact;
         $trznp->save();
         return $trzfact;
