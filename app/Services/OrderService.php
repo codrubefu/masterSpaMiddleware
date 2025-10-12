@@ -73,11 +73,7 @@ class OrderService
 
             $this->updateHotelToClient($client, $hotelId);
           
-            if (is_array($roomNumber) && !empty($roomNumber)) {
-                $selectedRoom = reset($roomNumber);
-            } else {
-                throw new \Exception('No available room found for the given criteria.');
-            }
+         $selectedRoom = reset($roomNumber);
 
 
             $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, strpos(strtolower($item['meta_data'][0]['value']), 'single') !== false);
