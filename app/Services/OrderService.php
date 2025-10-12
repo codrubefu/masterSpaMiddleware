@@ -49,7 +49,7 @@ class OrderService
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
 
         foreach ($orderInfo['items'] as $item) {
-            $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
+            $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0])); 
            
             $hotelId = $item['product_meta_input']['_hotel_id'][0];
        
