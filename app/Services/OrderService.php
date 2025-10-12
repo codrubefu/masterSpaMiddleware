@@ -279,7 +279,6 @@ class OrderService
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
         $trzdetnp->idcldet = $client->spaid;
-        $trzdetnp->idrec  = 1;
         $trzdetnp->descval = $this->numberToRomanianText($pret);
         $trzdetnp->pretueur = 0.00;
         $trzdetnp->nrvestiar = ' ';
