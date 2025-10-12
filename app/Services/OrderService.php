@@ -73,7 +73,11 @@ class OrderService
 
             $this->updateHotelToClient($client, $hotelId);
           
-            $roomNumber = '001';
+            if (is_array($roomNumber) && !empty($roomNumber)) {
+                $selectedRoom = reset($roomNumber);
+            } else {
+                throw new \Exception('No available room found for the given criteria.');
+            }
 
 
             $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, strpos(strtolower($item['meta_data'][0]['value']), 'single') !== false);
@@ -269,7 +273,6 @@ class OrderService
         $trzdetnp->idtrz = 0;
         $trzdetnp->idcldet = $client->spaid;
         $trzdetnp->save();
-        dd($trzdetnp);
      
         $trzdetnp = Trzdetnp::where('spaid',  $client->spaid)
         ->orderByDesc('nrnp')
