@@ -247,6 +247,7 @@ class OrderService
         $trznp = Trznp::where('spaid',  $client->spaid)
             ->orderByDesc('nrnpint')
             ->first();
+            dd($trznp)
         return $trznp;
     }
 
