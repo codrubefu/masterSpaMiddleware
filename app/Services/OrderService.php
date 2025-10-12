@@ -154,6 +154,7 @@ class OrderService
         $client->tara       = Country::getNameByCode($clientInfo['country']);
         $client->valuta     = 'RON';
         $client->hotel      = 'Extra';
+         $client->den = '';
         if ($isPj) {
             $client->cnpcui     = $clientInfo['_billing_cui'];
             $client->den        = $clientInfo['_billing_company_name'];

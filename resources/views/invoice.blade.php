@@ -69,7 +69,7 @@
       </td>
       <td style="width: 30%">
             <strong>Client:</strong> {{ $client['first_name'] ?? '' }} {{ $client['last_name'] ?? '' }}<br>
-            @if ($client['den'])
+            @if ($client['den']!= '' && $client['den'] != null)
               <strong>Denumire:</strong> {{ $client['den'] ?? '' }}<br>
             @endif
             @if ($client['cnpcui'])
