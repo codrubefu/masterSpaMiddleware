@@ -85,8 +85,7 @@ class OrderService
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
                 $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
-
-                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp->nrnpint, $invoiceNo);
+                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp, $invoiceNo);
             }
 
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
@@ -280,7 +279,7 @@ class OrderService
         return $trzdetnp;
     }
 
-    public function createTrzfact(client $client, $pret, $trznpid,$invoiceNo)
+    public function createTrzfact(client $client, $pret, $trznp,$invoiceNo)
     {
        
         $trzfact = new Trzfact();
@@ -306,13 +305,12 @@ class OrderService
         $trzfact->idpers = 1;
         $trzfact->curseur = 0.0000;
         $trzfact->cursusd = 0.0000;
-        $trzfact->nrnp = $trznpid;
+        $trzfact->nrnp = $trznp->nrnpint;
         $trzfact->save();
         $trzfact = Trzfact::where('idcl',  $client->spaid)
             ->orderByDesc('nrfact')
             ->first();
-        $trznp = Trznp::where('spaid',  $trznpid)->first();
-        dd($trznp);
+
         $trznp->nrfact = $trzfact->nrfact;
         $trznp->save();
         return $trzfact;
