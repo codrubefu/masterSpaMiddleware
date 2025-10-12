@@ -250,6 +250,8 @@ class OrderService
         $trznp->idrezervarehotel = $idrezervarehotel;
         $trznp->tip = 'WEBSITE';
         $trznp->obs = ' Sales Order from Website: ' . $idrezervarehotel;
+        $trznp->descval = $this->numberToRomanianText($pret);
+
         $trznp->save();
         $trznp = Trznp::where('spaid',  $client->spaid)
             ->orderByDesc('nrnpint')
@@ -279,7 +281,6 @@ class OrderService
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
         $trzdetnp->idcldet = $client->spaid;
-        $trzdetnp->descval = $this->numberToRomanianText($pret);
         $trzdetnp->pretueur = 0.00;
         $trzdetnp->nrvestiar = ' ';
         $trzdetnp->cotatva = $this->vatRate / 100;
