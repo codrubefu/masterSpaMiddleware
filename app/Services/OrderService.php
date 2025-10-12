@@ -237,12 +237,19 @@ class OrderService
         $trznp->totalron = $pret;
         $trznp->tva19 = $pret - $this->getVatFromPrice($pret);
         $trznp->data = date('Y-m-d H:i:s');
-        $trznp->compid = 'Website';
+        $trznp->compid = 'WEBSITE';
         $trznp->obscui = 'independent';
         $trznp->modp = 'Bank Card Web';
         $trznp->tipnp = 'Inside Services';
+        $trznp->tipcc = 'VISA';
+        $trznp->nrtrzcc = '1234****3456';
+        $trznp->cardid  = ' ';
+        $trznp->idrec  = 0;
+        $trznp->idlogin = 0;
+        $trznp->prmcod  = ' ';
         $trznp->idrezervarehotel = $idrezervarehotel;
-        $trznp->tip = 'Website';
+        $trznp->tip = 'WEBSITE';
+        $trznp->obs = ' Sales Order from Website: ' . $idrezervarehotel;
         $trznp->save();
         $trznp = Trznp::where('spaid',  $client->spaid)
             ->orderByDesc('nrnpint')
@@ -272,12 +279,94 @@ class OrderService
         $trzdetnp->idprog = 0;
         $trzdetnp->idtrz = 0;
         $trzdetnp->idcldet = $client->spaid;
+        $trzdetnp->idrec  = 1;
+        $trzdetnp->descval = $this->numberToRomanianText($pret);
+        $trzdetnp->pretueur = 0.00;
+        $trzdetnp->nrvestiar = ' ';
+        $trzdetnp->cotatva = $this->vatRate / 100;
+        $trzdetnp->nrvestiar2 = ' ';
         $trzdetnp->save();
      
         $trzdetnp = Trzdetnp::where('spaid',  $client->spaid)
         ->orderByDesc('nrnp')
         ->first();
         return $trzdetnp;
+    }
+
+
+    private function numberToRomanianText($number)
+    {
+        $number = (int) $number;
+        
+        if ($number == 0) {
+            return 'zero';
+        }
+
+        $units = ['', 'unu', 'doi', 'trei', 'patru', 'cinci', 'șase', 'șapte', 'opt', 'nouă'];
+        $teens = ['zece', 'unsprezece', 'doisprezece', 'treisprezece', 'paisprezece', 'cincisprezece', 
+                  'șaisprezece', 'șaptesprezece', 'optsprezece', 'nouăsprezece'];
+        $tens = ['', '', 'douăzeci', 'treizeci', 'patruzeci', 'cincizeci', 'șaizeci', 'șaptezeci', 'optzeci', 'nouăzeci'];
+        $hundreds = ['', 'una sută', 'două sute', 'trei sute', 'patru sute', 'cinci sute', 
+                     'șase sute', 'șapte sute', 'opt sute', 'nouă sute'];
+
+        $result = '';
+
+        // Millions
+        if ($number >= 1000000) {
+            $millions = intval($number / 1000000);
+            if ($millions == 1) {
+                $result .= 'un milion ';
+            } else {
+                $result .= $this->convertHundreds($millions, $units, $teens, $tens, $hundreds) . ' milioane ';
+            }
+            $number %= 1000000;
+        }
+
+        // Thousands
+        if ($number >= 1000) {
+            $thousands = intval($number / 1000);
+            if ($thousands == 1) {
+                $result .= 'o mie ';
+            } else {
+                $result .= $this->convertHundreds($thousands, $units, $teens, $tens, $hundreds) . ' mii ';
+            }
+            $number %= 1000;
+        }
+
+        // Hundreds, tens, units
+        if ($number > 0) {
+            $result .= $this->convertHundreds($number, $units, $teens, $tens, $hundreds);
+        }
+
+        return trim($result);
+    }
+
+    private function convertHundreds($number, $units, $teens, $tens, $hundreds)
+    {
+        $result = '';
+
+        // Hundreds
+        if ($number >= 100) {
+            $hundredsDigit = intval($number / 100);
+            $result .= $hundreds[$hundredsDigit] . ' ';
+            $number %= 100;
+        }
+
+        // Tens and units
+        if ($number >= 20) {
+            $tensDigit = intval($number / 10);
+            $unitsDigit = $number % 10;
+            $result .= $tens[$tensDigit];
+            if ($unitsDigit > 0) {
+                $result .= ' și ' . $units[$unitsDigit];
+            }
+        } elseif ($number >= 10) {
+            $result .= $teens[$number - 10];
+        } elseif ($number > 0) {
+            $result .= $units[$number];
+        }
+
+        return trim($result);
     }
 
     public function createTrzfact(client $client, $pret, $trznp,$invoiceNo)
@@ -297,16 +386,21 @@ class OrderService
         $trzfact->tipv = 'RON';
         $trzfact->nume = $client->den . ' ' . $client->prenume;
         $trzfact->cnp = '000000000000';
-        $trzfact->datafact = date('Y-m-d');
-        $trzfact->datascad = date('Y-m-d');
-        $trzfact->data = date('Y-m-d');
+        $trzfact->datafact = date('Y-m-d H:i:s.v');//2025-10-12 00:00:00.000
+        $trzfact->datascad = date('Y-m-d H:i:s.v');
+        $trzfact->data = date('Y-m-d H:i:s.v');
         $trzfact->compid = 'Website';
         $trzfact->tip = 'CP';
         $trzfact->nrfactspec = $invoiceNo;
-        $trzfact->idpers = 1;
+        $trzfact->idpers = 0;
         $trzfact->curseur = 0.0000;
         $trzfact->cursusd = 0.0000;
         $trzfact->nrnp = $trznp->nrnpint;
+        $trzfact->ciserie = ' ';
+        $trzfact->cinr = ' ';
+        $trzfact->cipol = ' ';
+        $trzfact->auto = ' ';
+        $trzfact->nrauto = ' ';
         $trzfact->save();
         $trzfact = Trzfact::where('idcl',  $client->spaid)
             ->orderByDesc('nrfact')
@@ -334,7 +428,7 @@ class OrderService
         $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity),2);
         $trzdetfact->valoare = round($this->getVatFromPrice($pret),2); 
         $trzdetfact->tva = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
-        $trzdetfact->data = date('Y-m-d');
+        $trzdetfact->data = date('Y-m-d H:i:s.v'); //2025-10-12 00:00:00.000
         $trzdetfact->compid = 'Website';
         $trzdetfact->idpers = '0';
         $trzdetfact->cotatva = $this->vatRate / 100;
@@ -408,7 +502,7 @@ class OrderService
         $trzdet->valoare = $trzdetnp->valoare;
         $trzdet->tva = null;
         $trzdet->tip = 'NP';
-        $trzdet->data = date('Y-m-d H:i:s');
+        $trzdet->data = date('Y-m-d H:i:s.v'); //2025-10-12 00:00:00.000
         $trzdet->compid = $trzdetnp->compid;
         $trzdet->idpers = $trzdetnp->idpers;
         $trzdet->redproc = $trzdetnp->redproc ?? null;
@@ -421,11 +515,12 @@ class OrderService
         $trzdet->idrevc = 1;
         $trzdet->valuta = 'RON';
         $trzdet->cursv = 1.000;
-        $trzdet->datac = date('Y-m-d H:i:s');
+        $trzdet->datac = date('Y-m-d H:i:s.v'); //2025-10-12 00:00:00.000
         $trzdet->cotatva = $this->vatRate / 100;
         $trzdet->reinnoire = false;
         $trzdet->cardb =  null;
         $trzdet->idcldet = $trzdetnp->spaid;
+        $trzdet->cardb = 0;
         $trzdet->save();
         return $trzdet;
     }
