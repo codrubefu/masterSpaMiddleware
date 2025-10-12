@@ -71,7 +71,7 @@ class OrderService
             );
             
             Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
-dd($roomNumber);
+
             $this->updateHotelToClient($client, $hotelId);
             if (is_array($roomNumber) && !empty($roomNumber)) {
                 $selectedRoom = reset($roomNumber);
