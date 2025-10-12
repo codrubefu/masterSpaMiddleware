@@ -49,8 +49,9 @@ class OrderService
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
 
         foreach ($orderInfo['items'] as $item) {
-            $roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0])); 
-           
+            //$roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0])); 
+            $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
+
             $hotelId = $item['product_meta_input']['_hotel_id'][0];
        
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
@@ -61,18 +62,17 @@ class OrderService
 
             $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
          
-            
+           
             $roomNumber = $rezervarehotelService->getRoomNumber(
                 $freeRoomsIds,
                 $orderBookingInfo['start_date'],
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
-           
+            
             Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
-
+dd($roomNumber);
             $this->updateHotelToClient($client, $hotelId);
-          
             if (is_array($roomNumber) && !empty($roomNumber)) {
                 $selectedRoom = reset($roomNumber);
             } else {
@@ -91,7 +91,7 @@ class OrderService
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
 
-        $this->generateInvoice($orderInfo, $invoiceNo,$clientInfo, $this->getCompany(),$trznp->nrnpint);
+        $this->generateInvoice($orderInfo, $invoiceNo, $clientInfo, $this->getCompany(), $trznp ? $trznp->nrnpint : null);
         $this->updateNrf();
         return true;
     }
