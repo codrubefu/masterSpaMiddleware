@@ -73,7 +73,7 @@ class OrderService
 
             $this->updateHotelToClient($client, $hotelId);
           
-         $selectedRoom = reset($roomNumber);
+            $roomNumber = '001';
 
 
             $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, strpos(strtolower($item['meta_data'][0]['value']), 'single') !== false);
