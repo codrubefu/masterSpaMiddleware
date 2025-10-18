@@ -54,11 +54,13 @@ class RoomSearchService
 
         // Step 2: Distribute people per room
         $distribution = $this->distributePeoplePerRoom($adults, $kids, $numberOfRooms);
-
-        // Step 3: Pre-fetch all reserved room numbers for the date range
+//2025-11-05 00:00:00.000	2025-11-10 00:00:00.000
+//  "start_date": "2025-11-02",
+//  "end_date": "2025-11-07"
+// Step 3: Pre-fetch all reserved room numbers for the date range
         $reservedRooms = DB::table('rezervarehotel')
             ->where(function ($query) use ($startDateTime, $endDateTime) {
-                $query->whereRaw('datas <= ? AND dataf >= ?', [$startDateTime, $endDateTime]);
+                $query->whereRaw('datas <= ? AND dataf >= ?', [$endDateTime, $startDateTime]);
             })
             ->pluck('camera')
             ->toArray();

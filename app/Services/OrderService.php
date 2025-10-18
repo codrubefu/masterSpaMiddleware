@@ -38,7 +38,11 @@ class OrderService
         }
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
-       
+
+        if ($clientInfo['_billing_company_details'] == 1) {
+            $clientPj = $this->findOrCreateClientPj($clientInfo);
+        }
+
         $seria = $this->getSerie();
         $number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
         $invoiceNo = 'FA' . date('y') . $this->nrGest . $number;
@@ -53,7 +57,7 @@ class OrderService
             $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
 
             $hotelId = $item['product_meta_input']['_hotel_id'][0];
-       
+
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
             $start = new \DateTime($orderBookingInfo['start_date']);
             $end = new \DateTime($orderBookingInfo['end_date']);
@@ -61,15 +65,15 @@ class OrderService
             $numberOfNights = $start->diff($end)->days;
 
             $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
-         
-           
+
+
             $roomNumber = $rezervarehotelService->getRoomNumber(
                 $freeRoomsIds,
                 $orderBookingInfo['start_date'],
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
-            
+
             Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
 
             $this->updateHotelToClient($client, $hotelId);
@@ -117,7 +121,7 @@ class OrderService
 
     public function getCompany()
     {
-      return Company::where('idfirma', 1)->first();
+        return Company::where('idfirma', 1)->first();
     }
 
     private function findOrCreateClient($clientInfo)
@@ -131,15 +135,12 @@ class OrderService
             $client->mobilcontact = $clientInfo['phone'];
         }
         $isPj = false;
-        if ($clientInfo['_billing_company_details'] == 1) {
-            $isPj = true;
-        }
 
         $client->den        = $clientInfo['first_name'];
         $client->prenume    = $clientInfo['last_name'];
         $client->adresa1    = $clientInfo['address_1'];
         $client->adresa2    = $clientInfo['address_2'];
-        $client->pj         = $isPj;
+        $client->pj         =  $isPj;
         $client->modp       = 'Website';
         $client->obscui     = 'independent';
         $client->startper   = date('Y-m-d H:i:s');
@@ -154,21 +155,38 @@ class OrderService
         $client->tara       = Country::getNameByCode($clientInfo['country']);
         $client->valuta     = 'RON';
         $client->hotel      = 'Extra';
-         $client->den = '';
-        if ($isPj) {
-            $client->cnpcui     = $clientInfo['_billing_cui'];
-            $client->den        = $clientInfo['_billing_company_name'];
-            $client->prenume    = $clientInfo['first_name'].' '.$clientInfo['last_name'];
-            $client->obscui     = $clientInfo['_billing_cui'];
-            $client->nrc        = $clientInfo['_billing_reg_com'];
-            $client->banca      = $clientInfo['_billing_banca'];
-            $client->iban       = $clientInfo['_billing_cont_iban'];
-        }
+        $client->den = '';
+
         $client->save();
-       
+
         $client = Client::where('email',  $clientInfo['email'])
-                ->where('mobilcontact', $clientInfo['phone'])
-                ->first();
+            ->where('mobilcontact', $clientInfo['phone'])
+            ->first();
+        return $client;
+    }
+
+    public function findOrCreateClientPj($clientInfo)
+    {
+        $client = Client::where('cnpcui',  $clientInfo['email'])
+            ->first();
+
+        if (!$client) {
+            $client = new Client();
+        }
+
+        $client->cnpcui     = $clientInfo['_billing_cui'];
+        $client->den        = $clientInfo['_billing_company_name'];
+        $client->prenume    = $clientInfo['first_name'] . ' ' . $clientInfo['last_name'];
+        $client->obscui     = $clientInfo['_billing_cui'];
+        $client->nrc        = $clientInfo['_billing_reg_com'];
+        $client->banca      = $clientInfo['_billing_banca'];
+        $client->iban       = $clientInfo['_billing_cont_iban'];
+
+        $client->save();
+
+        $client = Client::where('email',  $clientInfo['email'])
+            ->where('mobilcontact', $clientInfo['phone'])
+            ->first();
         return $client;
     }
 
@@ -190,9 +208,9 @@ class OrderService
     {
         // Add parameters: $rezervare, $trznp, $tipCamera, $selectedRoom
         $trzdetnp = $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity']);
-  
+
         $this->createTrzdet($trzdetnp);
-        $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType,$item);
+        $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
         $bookedRooms[] = $selectedRoom;
         return $bookedRooms;
     }
@@ -200,9 +218,9 @@ class OrderService
     private function createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $roomNumber, $hotelId, $isSingle)
     {
         $camera  = Camerehotel::where('idhotel', $hotelId)
-        ->where('nr', $roomNumber)
-        ->select('adultmax', 'kidmax')
-        ->first();
+            ->where('nr', $roomNumber)
+            ->select('adultmax', 'kidmax')
+            ->first();
         $rezervare = new Rezervarehotel();
         $rezervare->idcl = $client->spaid;
         $rezervare->idclagentie1 = 0;
@@ -287,10 +305,10 @@ class OrderService
         $trzdetnp->cotatva = $this->vatRate / 100;
         $trzdetnp->nrvestiar2 = ' ';
         $trzdetnp->save();
-     
+
         $trzdetnp = Trzdetnp::where('spaid',  $client->spaid)
-        ->orderByDesc('nrnp')
-        ->first();
+            ->orderByDesc('nrnp')
+            ->first();
         return $trzdetnp;
     }
 
@@ -298,17 +316,37 @@ class OrderService
     private function numberToRomanianText($number)
     {
         $number = (int) $number;
-        
+
         if ($number == 0) {
             return 'zero';
         }
 
         $units = ['', 'unu', 'doi', 'trei', 'patru', 'cinci', 'șase', 'șapte', 'opt', 'nouă'];
-        $teens = ['zece', 'unsprezece', 'doisprezece', 'treisprezece', 'paisprezece', 'cincisprezece', 
-                  'șaisprezece', 'șaptesprezece', 'optsprezece', 'nouăsprezece'];
+        $teens = [
+            'zece',
+            'unsprezece',
+            'doisprezece',
+            'treisprezece',
+            'paisprezece',
+            'cincisprezece',
+            'șaisprezece',
+            'șaptesprezece',
+            'optsprezece',
+            'nouăsprezece'
+        ];
         $tens = ['', '', 'douăzeci', 'treizeci', 'patruzeci', 'cincizeci', 'șaizeci', 'șaptezeci', 'optzeci', 'nouăzeci'];
-        $hundreds = ['', 'una sută', 'două sute', 'trei sute', 'patru sute', 'cinci sute', 
-                     'șase sute', 'șapte sute', 'opt sute', 'nouă sute'];
+        $hundreds = [
+            '',
+            'una sută',
+            'două sute',
+            'trei sute',
+            'patru sute',
+            'cinci sute',
+            'șase sute',
+            'șapte sute',
+            'opt sute',
+            'nouă sute'
+        ];
 
         $result = '';
 
@@ -370,9 +408,9 @@ class OrderService
         return trim($result);
     }
 
-    public function createTrzfact(client $client, $pret, $trznp,$invoiceNo)
+    public function createTrzfact(client $client, $pret, $trznp, $invoiceNo)
     {
-       
+
         $trzfact = new Trzfact();
         $trzfact->idfirma = 1;
         $trzfact->nrfactfisc = ' ';
@@ -387,7 +425,7 @@ class OrderService
         $trzfact->tipv = 'RON';
         $trzfact->nume = $client->den . ' ' . $client->prenume;
         $trzfact->cnp = '000000000000';
-        $trzfact->datafact = date('Y-m-d H:i:s.v');//2025-10-12 00:00:00.000
+        $trzfact->datafact = date('Y-m-d H:i:s.v'); //2025-10-12 00:00:00.000
         $trzfact->datascad = date('Y-m-d H:i:s.v');
         $trzfact->data = date('Y-m-d H:i:s.v');
         $trzfact->compid = 'Website';
@@ -416,7 +454,7 @@ class OrderService
     {
 
         $price = Pret::where('tipcamera', $roomType)->first();
-       
+
         $trzdetfact = new Trzdetfact();
         $trzdetfact->idfirma = 1;
         $trzdetfact->nrfact = $nrFact;
@@ -426,8 +464,8 @@ class OrderService
         $trzdetfact->art = $item['meta_data'][0]['value'];
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
-        $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity),2);
-        $trzdetfact->valoare = round($this->getVatFromPrice($pret),2); 
+        $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity), 2);
+        $trzdetfact->valoare = round($this->getVatFromPrice($pret), 2);
         $trzdetfact->tva = $pret - $this->getVatFromPrice($pret); // (pret fara tva);
         $trzdetfact->data = date('Y-m-d H:i:s.v'); //2025-10-12 00:00:00.000
         $trzdetfact->compid = 'Website';
@@ -447,7 +485,7 @@ class OrderService
         $data['client'] = $clientInfo;
         $data['nrnp'] = $nrnp;
         $data['data'] = date('d-m-Y');
-        $data['data_scadenta'] =date('d-m-Y');
+        $data['data_scadenta'] = date('d-m-Y');
         $isPj = false;
         if ($clientInfo['_billing_company_details'] == 1) {
             $isPj = true;
@@ -455,7 +493,7 @@ class OrderService
         if ($isPj) {
             $data['client']['cnpcui'] = $clientInfo['_billing_cui'];
             $data['client']['den'] = $clientInfo['_billing_company_name'];
-            $data['client']['prenume'] = $clientInfo['first_name'].' '.$clientInfo['last_name'];
+            $data['client']['prenume'] = $clientInfo['first_name'] . ' ' . $clientInfo['last_name'];
             $data['client']['obscui'] = $clientInfo['_billing_cui'];
             $data['client']['nrc'] = $clientInfo['_billing_reg_com'];
             $data['client']['banca'] = $clientInfo['_billing_banca'];
@@ -467,17 +505,17 @@ class OrderService
                 'name' => $item['name'],
                 'quantity' => $item['quantity'],
                 'price' => $item['subtotal'] / $item['quantity'],
-                'pret_unit_no_vat' => round($this->getVatFromPrice($item['subtotal'] / $item['quantity']),2),
+                'pret_unit_no_vat' => round($this->getVatFromPrice($item['subtotal'] / $item['quantity']), 2),
                 'total' => $item['subtotal'],
-                'tvaValue' => round($item['subtotal'] - $this->getVatFromPrice($item['subtotal']),2),
-                'total_no_vat' =>  round($this->getVatFromPrice($item['subtotal']),2),
+                'tvaValue' => round($item['subtotal'] - $this->getVatFromPrice($item['subtotal']), 2),
+                'total_no_vat' =>  round($this->getVatFromPrice($item['subtotal']), 2),
                 'tva' => $this->vatRate, // Assuming a fixed tax rate of 19%
             ];
         }
-         $data['vatRate'] = $this->vatRate;
+        $data['vatRate'] = $this->vatRate;
         $data['total'] = $orderBookingInfo['total'];
-        $data['totalTax'] = round($orderBookingInfo['total'] - $this->getVatFromPrice($data['total']),2);
-        $data['totalWithoutTax'] =  round($this->getVatFromPrice($data['total']),2);
+        $data['totalTax'] = round($orderBookingInfo['total'] - $this->getVatFromPrice($data['total']), 2);
+        $data['totalWithoutTax'] =  round($this->getVatFromPrice($data['total']), 2);
         $pdf = Pdf::loadView('invoice', $data);
 
         $invoiceDir = storage_path('invoices' . '/' . date('y') . '/' . date('m'));
