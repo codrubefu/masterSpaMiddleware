@@ -136,8 +136,8 @@ class OrderService
         }
         $isPj = false;
 
-        $client->den        = $clientInfo['first_name'];
-        $client->prenume    = $clientInfo['last_name'];
+        $client->den        = $clientInfo['last_name'];
+        $client->prenume    = $clientInfo['first_name'];
         $client->adresa1    = $clientInfo['address_1'];
         $client->adresa2    = $clientInfo['address_2'];
         $client->pj         =  $isPj;
@@ -155,7 +155,6 @@ class OrderService
         $client->tara       = Country::getNameByCode($clientInfo['country']);
         $client->valuta     = 'RON';
         $client->hotel      = 'Extra';
-        $client->den = '';
 
         $client->save();
 
