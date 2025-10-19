@@ -19,4 +19,11 @@ class OrderController extends Controller
         return response()->json($result, 200);
     }
    
+    public function reserveRoom(Request $request, RezervareHotelService $rezervarehotel, OrderService $orderService)
+    {
+         $orderInfo = $request->all();
+        $result = $orderService->reserveRoom($orderInfo, $rezervarehotel);
+
+        return response()->json($result, 200);
+    }
 }
