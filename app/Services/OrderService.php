@@ -155,7 +155,7 @@ class OrderService
         $client->tara       = Country::getNameByCode($clientInfo['country']);
         $client->valuta     = 'RON';
         $client->hotel      = 'Extra';
-
+        $client->cnpcui     = '0000000000000';
         $client->save();
 
         $client = Client::where('email',  $clientInfo['email'])
@@ -166,7 +166,7 @@ class OrderService
 
     public function findOrCreateClientPj($clientInfo)
     {
-        $client = Client::where('cnpcui',  $clientInfo['email'])
+        $client = Client::where('cnpcui',  $clientInfo['_billing_cui'])
             ->first();
 
         if (!$client) {
