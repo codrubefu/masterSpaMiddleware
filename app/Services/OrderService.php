@@ -238,7 +238,7 @@ class OrderService
         $rezervare->nradulti = $isSingle ? 1 : $camera->adultmax;
         $rezervare->nrcopii = $orderBookingInfo['kids'] != 0 ? $camera->kidmax : 0;
         $isMicDejun = strpos(strtolower($pachet), 'dejun') !== false;
-        $rezervare->tipmasa = $isMicDejun ? 'Mic dejun' : 'Fara MD';
+        $rezervare->tipmasa = $isMicDejun ? 'MD inclus' : 'Fara MD';
         $rezervare->prettipmasa = $pret;
         $rezervare->pachet  = $pachet;
         $rezervare->pretcamera = $pret;
