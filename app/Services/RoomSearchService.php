@@ -62,6 +62,7 @@ class RoomSearchService
             ->distinct()              // evită duplicatele dacă o cameră are mai multe rânduri
             ->pluck('camera')
             ->toArray();
+            
         $reservedSet = array_flip($reservedRooms); // for fast lookup
 
         // Step 4: Generate all combinations of rooms with the specified number
