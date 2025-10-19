@@ -51,13 +51,10 @@ class OrderService
         $trznp = null;
         $trzfact = null;
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
-
         foreach ($orderInfo['items'] as $item) {
             //$roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0])); 
             $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
-
             $hotelId = $item['product_meta_input']['_hotel_id'][0];
-
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
             $start = new \DateTime($orderBookingInfo['start_date']);
             $end = new \DateTime($orderBookingInfo['end_date']);
@@ -83,14 +80,17 @@ class OrderService
                 throw new \Exception('No available room found for the given criteria.');
             }
 
-
-            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, strpos(strtolower($item['meta_data'][0]['value']), 'single') !== false);
+            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, $item['meta_data'][0]['value']);
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
                 $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
                 $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp, $invoiceNo);
+                $np = $trznp->nrnpint.'.00';
+                $rezervare->nrnp = $np;
+                $rezervare->save();
             }
+
 
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
@@ -214,12 +214,16 @@ class OrderService
         return $bookedRooms;
     }
 
-    private function createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $roomNumber, $hotelId, $isSingle)
+    private function createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $roomNumber, $hotelId, $pachet)
     {
         $camera  = Camerehotel::where('idhotel', $hotelId)
             ->where('nr', $roomNumber)
             ->select('adultmax', 'kidmax')
             ->first();
+        $isSingle = strpos(strtolower($pachet), 'single') !== false;
+        $isMicDejun = strpos(strtolower($pachet), 'dejun') !== false;
+
+
         $rezervare = new Rezervarehotel();
         $rezervare->idcl = $client->spaid;
         $rezervare->idclagentie1 = 0;
@@ -231,15 +235,19 @@ class OrderService
         $rezervare->nrnopti = $numberOfNights;
         $rezervare->nradulti = $isSingle ? 1 : $camera->adultmax;
         $rezervare->nrcopii = $orderBookingInfo['kids'] != 0 ? $camera->kidmax : 0;
-        $rezervare->tipmasa = 'Fara MD';
+        $isMicDejun = strpos(strtolower($pachet), 'dejun') !== false;
+        $rezervare->tipmasa = $isMicDejun ? 'Mic dejun' : 'Fara MD';
         $rezervare->prettipmasa = $pret;
-        $rezervare->pachet  = $tipCamera;
+        $rezervare->pachet  = $pachet;
         $rezervare->pretcamera = $pret;
         $rezervare->pretnoapte = $pret;
         $rezervare->total = $pret;
         $rezervare->idfirma = 1;
         $rezervare->utilizator = 'Web';
         $rezervare->idhotel = $hotelId;
+        $rezervare->status = ' ';
+        $rezervare->agent = ' ';
+        $rezervare->platit = 1;
         $rezervare->save();
         // Get the last rezervare for this client (by primary key desc)
         $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
