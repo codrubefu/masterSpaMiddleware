@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use App\Models\Camerehotel;
+use Carbon\Carbon;
 
 class RoomSearchService
 {
@@ -48,20 +49,17 @@ class RoomSearchService
             ];
         })->toArray();
 
-        // Format input dates to match DB format
-        $startDateTime = $startDate . ' 00:00:00';
-        $endDateTime = $endDate . ' 23:59:59';
 
         // Step 2: Distribute people per room
         $distribution = $this->distributePeoplePerRoom($adults, $kids, $numberOfRooms);
-//2025-11-05 00:00:00.000	2025-11-10 00:00:00.000
-//  "start_date": "2025-11-02",
-//  "end_date": "2025-11-07"
-// Step 3: Pre-fetch all reserved room numbers for the date range
+        $start = Carbon::parse($startDate)->startOfDay();   // 2025-11-02 00:00:00
+        $end   = Carbon::parse($endDate)->startOfDay();     // 2025-11-07 00:00:00 (limita exclusivă)
+
         $reservedRooms = DB::table('rezervarehotel')
-            ->where(function ($query) use ($startDateTime, $endDateTime) {
-                $query->whereRaw('datas <= ? AND dataf >= ?', [$endDateTime, $startDateTime]);
-            })
+            // suprapunere: [datas, dataf) cu [start, end)
+            ->where('datas', '<', $end)
+            ->where('dataf', '>', $start)
+            ->distinct()              // evită duplicatele dacă o cameră are mai multe rânduri
             ->pluck('camera')
             ->toArray();
         $reservedSet = array_flip($reservedRooms); // for fast lookup
