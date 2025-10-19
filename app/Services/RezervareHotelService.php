@@ -12,12 +12,14 @@ class RezervareHotelService
         $checkInDateFormatted = (new \DateTime($checkInDate))->format('Y-m-d H:i:s') . '.000';
         $checkOutDateFormatted = (new \DateTime($checkOutDate))->format('Y-m-d H:i:s') . '.000';
         return DB::table('rezervarehotel')
-            ->whereIn('camera', $roomNrs)
-            ->where(function ($query) use ($checkInDateFormatted, $checkOutDateFormatted) {
-                $query->whereRaw('datas >= ? AND dataf <= ?', [$checkInDateFormatted, $checkOutDateFormatted]);
-            })
+            ->select('camera')
             ->where('idhotel', $hotelId)
-            ->get()->pluck('camera');
+            ->whereIn('camera', $roomNrs)
+            // suprapunere intervale: [datas, dataf) cu [checkIn, checkOut)
+            ->where('datas', '<', $checkOutDateFormatted)
+            ->where('dataf', '>', $checkInDateFormatted)
+            ->distinct()
+            ->pluck('camera');
     }
 
     public function getRoomNumber(array $roomsIds, string $checkInDate, string $checkOutDate, int $hotelId)
