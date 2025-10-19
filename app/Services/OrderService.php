@@ -205,8 +205,10 @@ class OrderService
 
     private function processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $roomType)
     {
+
+
         // Add parameters: $rezervare, $trznp, $tipCamera, $selectedRoom
-        $trzdetnp = $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity'], $roomType);
+        $trzdetnp = $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity'], $rezervare->pachet);
 
         $this->createTrzdet($trzdetnp);
         $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
@@ -287,6 +289,7 @@ class OrderService
 
     private function createTrzdetnp($client, $pret, $idrezervarehotel, $trznp, $tipCamera, $quantity, $roomType)
     {
+      
         $trzdetnp = new Trzdetnp();
         $trzdetnp->nrnp = $trznp->nrnpint;
         $trzdetnp->spaid = $client->spaid;
