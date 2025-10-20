@@ -87,7 +87,7 @@ class OrderService
         if (is_array($roomNumber) && !empty($roomNumber)) {
             $selectedRoom = reset($roomNumber);
         } else {
-            throw new \Exception('No available room found for the given criteria.');
+            return ['error' => 'No available rooms found for the selected dates.'];
         }
 
         return [
@@ -112,7 +112,9 @@ class OrderService
         foreach ($orderInfo['items'] as $item) {
             $roomData = $this->processRoomReservation($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService);
             extract($roomData); // $selectedRoom, $hotelId, $tipCamera, $numberOfNights, $pret
-            
+            if (isset($roomData['error'])) {
+                return ['error' => $roomData['error']];
+            }
             $rezervare = $this->createRezervarehotel(
                 $client, 
                 $orderBookingInfo, 
@@ -125,7 +127,7 @@ class OrderService
             );
         }
 
-        return $rezervare;  
+        return $rezervare->idrezervarehotel;
     }
 
 
@@ -140,21 +142,16 @@ class OrderService
         $trzfact = null;
         
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
-        
+       
         foreach ($orderInfo['items'] as $item) {
-            $roomData = $this->processRoomReservation($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService);
-            extract($roomData); // $selectedRoom, $hotelId, $tipCamera, $numberOfNights, $pret
 
-            $rezervare = $this->createRezervarehotel(
-                $client, 
-                $orderBookingInfo, 
-                $tipCamera, 
-                $numberOfNights, 
-                $pret, 
-                $selectedRoom, 
-                $hotelId, 
-                $item['meta_data'][0]['value']
-            );
+             $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
+            ->orderByDesc('idrezervarehotel')
+            ->first();
+            $rezervare->platit = 1;
+            $rezervare->save();
+
+            
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
@@ -332,7 +329,7 @@ class OrderService
         $rezervare->idhotel = $hotelId;
         $rezervare->status = ' ';
         $rezervare->agent = ' ';
-        $rezervare->platit = 1;
+        $rezervare->platit = 0;
         $rezervare->save();
         // Get the last rezervare for this client (by primary key desc)
         $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
