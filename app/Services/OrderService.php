@@ -29,6 +29,7 @@ class OrderService
 
     public function saveOrder(array $orderInfo, RezervareHotelService $rezervarehotelService)
     {
+        $this->updateNrf();
         $orderBookingInfo = $orderInfo['custom_info'];
         $clientInfo = $orderInfo['billing'];
         foreach ($orderInfo['meta_data'] as $key => $value) {
@@ -96,14 +97,14 @@ class OrderService
         }
 
         $this->generateInvoice($orderInfo, $invoiceNo, $clientInfo, $this->getCompany(), $trznp ? $trznp->nrnpint : null);
-        $this->updateNrf();
+       
         return true;
     }
 
     public function getNrf()
     {
         $nrf = Gest::where('nrgest', $this->nrGest)->first()->nrf;
-        return $nrf + 1;
+        return $nrf;
     }
 
     public function updateNrf()
