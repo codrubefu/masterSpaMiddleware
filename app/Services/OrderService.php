@@ -27,7 +27,10 @@ class OrderService
     protected $nrGest = 10101;
     protected $vatRate = 11;
 
-    public function saveOrder(array $orderInfo, RezervareHotelService $rezervarehotelService)
+    /**
+     * Common initialization logic for both reserveRoom and saveOrder
+     */
+    private function initializeOrderProcessing(array $orderInfo)
     {
         $this->updateNrf();
         $orderBookingInfo = $orderInfo['custom_info'];
@@ -37,7 +40,7 @@ class OrderService
                 $clientInfo[$value['key']] = $value['value'];
             }
         }
-        $bookedRooms = [];
+        
         $client = $this->findOrCreateClient($clientInfo);
 
         if ($clientInfo['_billing_company_details'] == 1) {
@@ -48,40 +51,108 @@ class OrderService
         $number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
         $invoiceNo = 'FA' . date('y') . $this->nrGest . $number;
 
+        return [
+            'orderBookingInfo' => $orderBookingInfo,
+            'clientInfo' => $clientInfo,
+            'client' => $client,
+            'invoiceNo' => $invoiceNo
+        ];
+    }
+
+    /**
+     * Common room processing logic for both methods
+     */
+    private function processRoomReservation($item, $orderBookingInfo, $client, &$bookedRooms, RezervareHotelService $rezervarehotelService)
+    {
+        $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
+        $hotelId = $item['product_meta_input']['_hotel_id'][0];
+        $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
+        $start = new \DateTime($orderBookingInfo['start_date']);
+        $end = new \DateTime($orderBookingInfo['end_date']);
+        $pret = $item['subtotal'] / $item['quantity'];
+        $numberOfNights = $start->diff($end)->days;
+
+        $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
+
+        $roomNumber = $rezervarehotelService->getRoomNumber(
+            $freeRoomsIds,
+            $orderBookingInfo['start_date'],
+            $orderBookingInfo['end_date'],
+            $hotelId
+        );
+
+        Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
+
+        $this->updateHotelToClient($client, $hotelId);
+        
+        if (is_array($roomNumber) && !empty($roomNumber)) {
+            $selectedRoom = reset($roomNumber);
+        } else {
+            return ['error' => 'No available rooms found for the selected dates.'];
+        }
+
+        return [
+            'selectedRoom' => $selectedRoom,
+            'hotelId' => $hotelId,
+            'tipCamera' => $tipCamera,
+            'numberOfNights' => $numberOfNights,
+            'pret' => $pret
+        ];
+    }
+
+    public function reserveRoom(array $orderInfo, RezervareHotelService $rezervarehotelService)
+    {
+        $initData = $this->initializeOrderProcessing($orderInfo);
+        extract($initData); // $orderBookingInfo, $clientInfo, $client, $invoiceNo
+        
+        $bookedRooms = [];
+        $rezervare = null;
+        
+        Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
+        
+        foreach ($orderInfo['items'] as $item) {
+            $roomData = $this->processRoomReservation($item, $orderBookingInfo, $client, $bookedRooms, $rezervarehotelService);
+            extract($roomData); // $selectedRoom, $hotelId, $tipCamera, $numberOfNights, $pret
+            if (isset($roomData['error'])) {
+                return ['error' => $roomData['error']];
+            }
+            $rezervare = $this->createRezervarehotel(
+                $client, 
+                $orderBookingInfo, 
+                $tipCamera, 
+                $numberOfNights, 
+                $pret, 
+                $selectedRoom, 
+                $hotelId, 
+                $item['meta_data'][0]['value']
+            );
+        }
+
+        return $rezervare->idrezervarehotel;
+    }
+
+
+    public function saveOrder(array $orderInfo, RezervareHotelService $rezervarehotelService)
+    {
+        $initData = $this->initializeOrderProcessing($orderInfo);
+        extract($initData); // $orderBookingInfo, $clientInfo, $client, $invoiceNo
+        
+        $bookedRooms = [];
         $rezervare = null;
         $trznp = null;
         $trzfact = null;
+        
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
+       
         foreach ($orderInfo['items'] as $item) {
-            //$roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0])); 
-            $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
-            $hotelId = $item['product_meta_input']['_hotel_id'][0];
-            $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
-            $start = new \DateTime($orderBookingInfo['start_date']);
-            $end = new \DateTime($orderBookingInfo['end_date']);
-            $pret = $item['subtotal'] / $item['quantity'];
-            $numberOfNights = $start->diff($end)->days;
 
-            $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
+             $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
+            ->orderByDesc('idrezervarehotel')
+            ->first();
+            $rezervare->platit = 1;
+            $rezervare->save();
 
-
-            $roomNumber = $rezervarehotelService->getRoomNumber(
-                $freeRoomsIds,
-                $orderBookingInfo['start_date'],
-                $orderBookingInfo['end_date'],
-                $hotelId
-            );
-
-            Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
-
-            $this->updateHotelToClient($client, $hotelId);
-            if (is_array($roomNumber) && !empty($roomNumber)) {
-                $selectedRoom = reset($roomNumber);
-            } else {
-                throw new \Exception('No available room found for the given criteria.');
-            }
-
-            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, $item['meta_data'][0]['value']);
+            
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
@@ -92,8 +163,17 @@ class OrderService
                 $rezervare->save();
             }
 
-
-            $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
+            $bookedRooms = $this->processOrderItem(
+                $item,  
+                $client, 
+                $bookedRooms,  
+                $rezervare, 
+                $trznp, 
+                $tipCamera, 
+                $selectedRoom, 
+                $trzfact, 
+                $item['product_meta_input']['_hotel_room_type']
+            );
         }
 
         $this->generateInvoice($orderInfo, $invoiceNo, $clientInfo, $this->getCompany(), $trznp ? $trznp->nrnpint : null);
@@ -250,7 +330,7 @@ class OrderService
         $rezervare->idhotel = $hotelId;
         $rezervare->status = ' ';
         $rezervare->agent = ' ';
-        $rezervare->platit = 1;
+        $rezervare->platit = 0;
         $rezervare->save();
         // Get the last rezervare for this client (by primary key desc)
         $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
