@@ -499,6 +499,8 @@ class OrderService
         $data['data'] = date('d-m-Y');
         $data['data_scadenta'] = date('d-m-Y');
         $isPj = false;
+        $data['data_start'] = new \DateTime($orderBookingInfo['custom_info']['start_date']);
+        $data['data_end'] = new \DateTime($orderBookingInfo['custom_info']['end_date']);
         if ($clientInfo['_billing_company_details'] == 1) {
             $isPj = true;
         }

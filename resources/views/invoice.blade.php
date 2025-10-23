@@ -117,7 +117,7 @@
    @foreach ($items as $key => $item)
     <tr>
       <td class="center" style="border-bottom: 0px;border-top: 0px;">{{ $key+1 }}</td>
-      <td style="border-bottom: 0px;border-top: 0px;">{{ $item['name'] ?? '' }}</td>
+      <td style="border-bottom: 0px;border-top: 0px;">{{ $item['name'] ?? '' }}<br>De la {{ $data_start->format('d.m.Y') }} pana la {{ $data_end->format('d.m.Y') }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="center">{{ $item['unit'] ?? 'BUC' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['quantity'] ?? '' }}</td>
       <td style="border-bottom: 0px;border-top: 0px;" class="right">{{ $item['pret_unit_no_vat'] ?? '' }}</td>
