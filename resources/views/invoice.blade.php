@@ -72,8 +72,10 @@
             @if (isset($client['den']) && $client['den'] != '' && $client['den'] != null)
               <strong>Denumire:</strong> {{ $client['den'] ?? '' }}<br>
             @endif
-            @if (isset($client['cnpcui']) && $client['cnpcui'])
-            <strong>C.U.I.:</strong> {{ $client['cnpcui'] ?? '00000000000' }}<br>
+            @if (isset($client['cnpcui']) && $client['cnpcui'] === '0000000000000')
+             <strong>CNP:</strong> {{ $client['cnpcui'] }}<br>
+            @else
+            <strong>C.U.I.:</strong> {{ $client['cnpcui'] }}<br>
             @endif
             <strong>E-mail:</strong> {{ $client['email'] ?? '' }}<br>
             <strong>Adresă:</strong> {{ $client['address_1'] ?? '' }} {{ $client['address_2'] ?? '' }} {{ $client['city'] ?? '' }}<br>
