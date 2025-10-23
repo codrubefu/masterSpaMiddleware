@@ -494,6 +494,7 @@ class OrderService
         $data['data'] = date('Y-m-d');
         $data['data_scadenta'] = date('Y-m-d');
         $data['client'] = $clientInfo;
+         $data['client']['cnpcui'] = '0000000000000';
         $data['nrnp'] = $nrnp;
         $data['data'] = date('d-m-Y');
         $data['data_scadenta'] = date('d-m-Y');
