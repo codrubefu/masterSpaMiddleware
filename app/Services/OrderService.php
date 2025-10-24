@@ -144,11 +144,11 @@ class OrderService
         $client->pj         =  $isPj;
         $client->modp       = 'Website';
         $client->obscui     = 'independent';
-        $client->startper   = date('Y-m-d H:i:s');
-        $client->endper     = date('Y-m-d H:i:s');
-        $client->datan      = date('Y-m-d H:i:s');
+        $client->startper   = date('Y-m-d H:i:s.v');
+        $client->endper     = date('Y-m-d H:i:s.v');
+        $client->datan      = date('Y-m-d H:i:s.v');
         $client->camera     = 0;
-        $client->datacreare = date('Y-m-d H:i:s');
+        $client->datacreare = date('Y-m-d H:i:s.v');
         $client->compid     = 'Website';
         $client->tip        = 'Website';
         $client->oras       = $clientInfo['city'];
@@ -181,6 +181,11 @@ class OrderService
         $client->nrc        = $clientInfo['_billing_reg_com'];
         $client->banca      = $clientInfo['_billing_banca'];
         $client->iban       = $clientInfo['_billing_cont_iban'];
+        $client->oras       = $clientInfo['city'];
+        $client->judet      = Judet::getNameByCode($clientInfo['state']);
+        $client->tara       = Country::getNameByCode($clientInfo['country']);    
+        $client->compid     = 'WEBSITE';
+        $client->pj        = 1;
 
         $client->save();
 
@@ -231,8 +236,8 @@ class OrderService
         $rezervare->idcl = $client->spaid;
         $rezervare->idclagentie1 = 0;
         $rezervare->idclagentie2 = 0;
-        $rezervare->datas = $orderBookingInfo['start_date'];
-        $rezervare->dataf = $orderBookingInfo['end_date'];
+        $rezervare->datas = date('Y-m-d 14:00:00', strtotime($orderBookingInfo['start_date']));
+        $rezervare->dataf = date('Y-m-d 11:00:00', strtotime($orderBookingInfo['end_date']));
         $rezervare->camera = $roomNumber;
         $rezervare->tipcamera = $tipCamera;
         $rezervare->nrnopti = $numberOfNights;
@@ -265,7 +270,7 @@ class OrderService
         $trznp->spaid = $client->spaid;
         $trznp->totalron = $pret;
         $trznp->tva19 = $pret - $this->getVatFromPrice($pret);
-        $trznp->data = date('Y-m-d H:i:s');
+        $trznp->data = date('Y-m-d H:i:s.v');
         $trznp->compid = 'WEBSITE';
         $trznp->obscui = 'independent';
         $trznp->modp = 'Bank Card Web';
@@ -298,13 +303,13 @@ class OrderService
         $trzdetnp->cant = $quantity;
         $trzdetnp->preturon = $pret / $quantity;
         $trzdetnp->valoare = $pret;
-        $trzdetnp->data = date('Y-m-d H:i:s');
+        $trzdetnp->data = date('Y-m-d H:i:s.v');
         $trzdetnp->compid = 'Website';
         $trzdetnp->pretfaradisc = $pret;
         $trzdetnp->valuta = 'RON';
         $trzdetnp->cursv = 1;
-        $trzdetnp->datac = date('Y-m-d H:i:s');
-        $trzdetnp->dataactiv = date('Y-m-d H:i:s');
+        $trzdetnp->datac = date('Y-m-d H:i:s.v');
+        $trzdetnp->dataactiv = date('Y-m-d H:i:s.v');
         $trzdetnp->tipf = 'Hotel';
         $trzdetnp->idrezervarehotel = $idrezervarehotel;
         $trzdetnp->cardid = 0;
@@ -507,7 +512,7 @@ class OrderService
         if ($isPj) {
             $data['client']['cnpcui'] = $clientInfo['_billing_cui'];
             $data['client']['den'] = $clientInfo['_billing_company_name'];
-            $data['client']['prenume'] = $clientInfo['first_name'] . ' ' . $clientInfo['last_name'];
+            $data['client']['prenume'] = '.' ;
             $data['client']['obscui'] = $clientInfo['_billing_cui'];
             $data['client']['nrc'] = $clientInfo['_billing_reg_com'];
             $data['client']['banca'] = $clientInfo['_billing_banca'];
