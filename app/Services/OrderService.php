@@ -39,9 +39,9 @@ class OrderService
         }
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
-
+        $clientPj = null;
         if ($clientInfo['_billing_company_details'] == 1) {
-            $clientPj = $this->findOrCreateClientPj($clientInfo);
+            $clientPj = $this->findOrCreateClientPj($clientInfo, $client->spaid);
         }
 
         $seria = $this->getSerie();
@@ -85,6 +85,9 @@ class OrderService
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
+                if($clientPj) {
+                    $client = $clientPj;
+                }
                 $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
                 $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp, $invoiceNo);
                 $np = $trznp->nrnpint.'.00';
@@ -165,7 +168,7 @@ class OrderService
         return $client;
     }
 
-    public function findOrCreateClientPj($clientInfo)
+    public function findOrCreateClientPj($clientInfo,$spaid)
     {
         $client = Client::where('cnpcui',  $clientInfo['_billing_cui'])
             ->first();
@@ -176,13 +179,20 @@ class OrderService
 
         $client->cnpcui     = $clientInfo['_billing_cui'];
         $client->den        = $clientInfo['_billing_company_name'];
-        $client->prenume    = $clientInfo['first_name'] . ' ' . $clientInfo['last_name'];
+        $client->prenume    = '.' ;
         $client->obscui     = $clientInfo['_billing_cui'];
+        $client->adresa1    = $clientInfo['_billing_company_address'];
+        $client->datan      = date('Y-m-d H:i:s.v');
+        $client->modp       = 'Website';
+        $client->valuta     = 'RON';
+        $client->datacreare = date('Y-m-d H:i:s.v');
+        $client->tip       = 'Website';
+        $client->clhead  = $spaid;
         $client->nrc        = $clientInfo['_billing_reg_com'];
         $client->banca      = $clientInfo['_billing_banca'];
         $client->iban       = $clientInfo['_billing_cont_iban'];
         $client->oras       = $clientInfo['_billing_company_city'];
-        $client->judet      = $clientInfo['_billing_company_state'];
+        $client->judet      = Judet::getNameByCode($clientInfo['_billing_company_state']);
         $client->tara       = Country::getNameByCode($clientInfo['_billing_company_country']);
         $client->compid     = 'WEBSITE';
         $client->pj        = 1;

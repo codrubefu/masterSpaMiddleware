@@ -70,4 +70,17 @@ class Judet
         }
         return null;
     }
+
+    public static function getCodeByName($name)
+    {
+        $regions = self::getAll();
+        dd($name);
+        foreach ($regions as $key => $region) {
+            if (strtolower($region['name']) === strtolower($name)) {
+                 return $key;
+            }
+        }
+
+        return null;
+    }
 }
