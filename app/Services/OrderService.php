@@ -203,8 +203,7 @@ class OrderService
 
         $client->save();
 
-        $client = Client::where('email',  $clientInfo['email'])
-            ->where('mobilcontact', $clientInfo['phone'])
+         $client = Client::where('cnpcui',  $clientInfo['_billing_cui'])
             ->first();
         return $client;
     }
