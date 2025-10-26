@@ -181,9 +181,9 @@ class OrderService
         $client->nrc        = $clientInfo['_billing_reg_com'];
         $client->banca      = $clientInfo['_billing_banca'];
         $client->iban       = $clientInfo['_billing_cont_iban'];
-        $client->oras       = $clientInfo['city'];
-        $client->judet      = Judet::getNameByCode($clientInfo['state']);
-        $client->tara       = Country::getNameByCode($clientInfo['country']);    
+        $client->oras       = $clientInfo['_billing_company_city'];
+        $client->judet      = $clientInfo['_billing_company_state'];
+        $client->tara       = Country::getNameByCode($clientInfo['_billing_company_country']);
         $client->compid     = 'WEBSITE';
         $client->pj        = 1;
 

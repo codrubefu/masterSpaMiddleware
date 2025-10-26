@@ -60,7 +60,7 @@
       <td class="invoice-info" >
         <h2>FACTURA</h2>
          <p style="text-align: left">
-            SERIE:ABC<br>
+            SERIE:NBLS<br>
             Număr: {{ $nrfactura }}<br>
             Data: {{ $data }}<br>
          </p>
