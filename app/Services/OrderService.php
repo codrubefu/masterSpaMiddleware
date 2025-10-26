@@ -85,17 +85,20 @@ class OrderService
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
+            
+                $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
                 if($clientPj) {
                     $client = $clientPj;
                 }
-                $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
                 $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp, $invoiceNo);
                 $np = $trznp->nrnpint.'.00';
                 $rezervare->nrnp = $np;
                 $rezervare->save();
             }
 
-
+            if($clientPj) {
+                $client = $clientPj;
+                }             
             $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
 
@@ -195,6 +198,7 @@ class OrderService
         $client->judet      = Judet::getNameByCode($clientInfo['_billing_company_state']);
         $client->tara       = Country::getNameByCode($clientInfo['_billing_company_country']);
         $client->compid     = 'WEBSITE';
+        $client->atojki     = 'Firma'
         $client->pj        = 1;
 
         $client->save();
