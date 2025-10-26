@@ -198,7 +198,7 @@ class OrderService
         $client->judet      = Judet::getNameByCode($clientInfo['_billing_company_state']);
         $client->tara       = Country::getNameByCode($clientInfo['_billing_company_country']);
         $client->compid     = 'WEBSITE';
-        $client->atojki     = 'Firma'
+        $client->atojki     = 'Firma';
         $client->pj        = 1;
 
         $client->save();
