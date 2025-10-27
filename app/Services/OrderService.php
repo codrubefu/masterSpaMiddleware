@@ -308,7 +308,6 @@ class OrderService
 
     private function createTrzdetnp($client, $pret, $idrezervarehotel, $trznp, $tipCamera, $quantity, $roomType)
     {
-      dd($client->toArray());
         $trzdetnp = new Trzdetnp();
         $trzdetnp->nrnp = $trznp->nrnpint;
         $trzdetnp->spaid = $client->spaid;
