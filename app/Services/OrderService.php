@@ -336,8 +336,9 @@ class OrderService
         $trzdetnp->save();
 
         $trzdetnp = Trzdetnp::where('spaid',  $client->spaid)
-            ->orderByDesc('nrnp')
+            ->orderByDesc('idtrzf')
             ->first();
+
         return $trzdetnp;
     }
 
