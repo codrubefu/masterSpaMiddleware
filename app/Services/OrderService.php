@@ -96,10 +96,7 @@ class OrderService
                 $rezervare->save();
             }
 
-            if($clientPj) {
-                $client = $clientPj;
-                }             
-            $bookedRooms = $this->processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
+            $bookedRooms = $this->processOrderItem($item,  $client, $clientPj, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
 
         $this->generateInvoice($orderInfo, $invoiceNo, $clientInfo, $this->getCompany(), $trznp ? $trznp->nrnpint : null);
@@ -222,7 +219,7 @@ class OrderService
         return $client;
     }
 
-    private function processOrderItem($item,  $client, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $roomType)
+    private function processOrderItem($item,  $client, $clientPj, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $roomType)
     {
 
 
@@ -230,6 +227,9 @@ class OrderService
         $trzdetnp = $this->createTrzdetnp($client, $item['subtotal'], $rezervare->idrezervarehotel, $trznp, $tipCamera, $item['quantity'], $rezervare->pachet);
 
         $this->createTrzdet($trzdetnp);
+        if($clientPj) {
+            $client = $clientPj;
+        }
         $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
         $bookedRooms[] = $selectedRoom;
         return $bookedRooms;
@@ -308,7 +308,7 @@ class OrderService
 
     private function createTrzdetnp($client, $pret, $idrezervarehotel, $trznp, $tipCamera, $quantity, $roomType)
     {
-      
+      dd($client->toArray());
         $trzdetnp = new Trzdetnp();
         $trzdetnp->nrnp = $trznp->nrnpint;
         $trzdetnp->spaid = $client->spaid;
