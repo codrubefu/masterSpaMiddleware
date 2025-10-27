@@ -88,9 +88,11 @@ class OrderService
             
                 $trznp = $this->createTrznp($client, $orderInfo['total'], $rezervare->idrezervarehotel);
                 if($clientPj) {
-                    $client = $clientPj;
+                    $useClient = $clientPj;
+                }else{
+                    $useClient = $client;
                 }
-                $trzfact = $this->createTrzfact($client, $orderInfo['total'], $trznp, $invoiceNo);
+                $trzfact = $this->createTrzfact($useClient, $orderInfo['total'], $trznp, $invoiceNo);
                 $np = $trznp->nrnpint.'.00';
                 $rezervare->nrnp = $np;
                 $rezervare->save();
