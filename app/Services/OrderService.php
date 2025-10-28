@@ -16,6 +16,7 @@ use App\Models\Company;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Mail\Message;
 use App\Services\RezervareHotelService;
 use App\Helper\Judet;
@@ -30,8 +31,7 @@ class OrderService
     protected $invoiceNo;
     public function __construct()
     {
-        $this->updateNrf();
-        $this->number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
+        $this->number = $this->generateNextInvoiceSequence();
         $this->invoiceNo = 'FA' . date('y') . $this->nrGest . $this->number;
     }
 
@@ -114,17 +114,17 @@ class OrderService
         return true;
     }
 
-    public function getNrf()
+    private function generateNextInvoiceSequence(): string
     {
-        $nrf = Gest::where('nrgest', $this->nrGest)->first()->nrf;
-        return $nrf;
-    }
+        $nextNrf = DB::transaction(function () {
+            $gest = Gest::where('nrgest', $this->nrGest)->lockForUpdate()->firstOrFail();
+            $gest->nrf = $gest->nrf + 1;
+            $gest->save();
 
-    public function updateNrf()
-    {
-        $nrf = Gest::where('nrgest', $this->nrGest)->first();
-        $nrf->nrf = $nrf->nrf + 1;
-        $nrf->save();
+            return $gest->nrf;
+        });
+
+        return str_pad($nextNrf, 5, '0', STR_PAD_LEFT);
     }
 
     public function getSerie()
