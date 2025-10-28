@@ -26,10 +26,18 @@ class OrderService
 
     protected $nrGest = 10101;
     protected $vatRate = 11;
+    protected $number;
+    protected $invoiceNo;
+    public function __construct()
+    {
+        $this->updateNrf();
+        $this->number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
+        $this->invoiceNo = 'FA' . date('y') . $this->nrGest . $this->number;
+    }
 
     public function saveOrder(array $orderInfo, RezervareHotelService $rezervarehotelService)
     {
-        $this->updateNrf();
+       
         $orderBookingInfo = $orderInfo['custom_info'];
         $clientInfo = $orderInfo['billing'];
         foreach ($orderInfo['meta_data'] as $key => $value) {
@@ -44,9 +52,7 @@ class OrderService
             $clientPj = $this->findOrCreateClientPj($clientInfo, $client->spaid);
         }
 
-        $seria = $this->getSerie();
-        $number = str_pad($this->getNrf(), 5, '0', STR_PAD_LEFT);
-        $invoiceNo = 'FA' . date('y') . $this->nrGest . $number;
+        $invoiceNo = $this->invoiceNo;
 
         $rezervare = null;
         $trznp = null;
@@ -93,10 +99,12 @@ class OrderService
                     $useClient = $client;
                 }
                 $trzfact = $this->createTrzfact($useClient, $orderInfo['total'], $trznp, $invoiceNo);
-                $np = $trznp->nrnpint.'.00';
-                $rezervare->nrnp = $np;
-                $rezervare->save();
+
             }
+            
+            $np = $trznp->nrnpint.'.00';
+            $rezervare->nrnp = $np;
+            $rezervare->save();
 
             $bookedRooms = $this->processOrderItem($item,  $client, $clientPj, $bookedRooms,  $rezervare, $trznp, $tipCamera, $selectedRoom, $trzfact, $item['product_meta_input']['_hotel_room_type']);
         }
