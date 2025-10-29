@@ -24,11 +24,22 @@ class RezervareHotelService
 
     public function getRoomNumber(array $roomsIds, string $checkInDate, string $checkOutDate, int $hotelId)
     {
+        $lockedRooms = DB::table('camerehotel')
+            ->where('idhotel', $hotelId)
+            ->whereIn('nr', $roomsIds)
+            ->lockForUpdate()
+            ->pluck('nr')
+            ->toArray();
 
-        $bookedRooms = $this->searchBookedRooms($checkInDate, $checkOutDate, $roomsIds, $hotelId);
-       
+        if (empty($lockedRooms)) {
+            return null;
+        }
+
+        $bookedRooms = $this->searchBookedRooms($checkInDate, $checkOutDate, $lockedRooms, $hotelId);
+
         // Remove booked rooms from the list
-        $availableRooms = array_diff($roomsIds, $bookedRooms->toArray());
+        $availableRooms = array_values(array_diff($lockedRooms, $bookedRooms->toArray()));
+
         return !empty($availableRooms) ? $availableRooms : null;
     }
 
