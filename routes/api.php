@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CamerehotelController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\RezervarehotelController;
+use App\Http\Controllers\TestEmailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -63,5 +64,9 @@ Route::middleware('api.secret')->group(function () {
     Route::get('/reservations/departures/today', [RezervarehotelController::class, 'getTodaysDepartures']);
  
     Route::post('/order', [OrderController::class, 'save']); 
+
+    // Test Email routes
+    Route::post('/test-email/send', [TestEmailController::class, 'sendTestEmail']);
+    Route::post('/test-email/send/{email}', [TestEmailController::class, 'sendTestEmailToCustom']);
 
 });
