@@ -613,7 +613,7 @@ class OrderService
             Log::error('Invoice email not sent: missing recipient or invoice file.');
             return false;
         }
-        $subject = 'Factura ta de la MasterSPA';
+        $subject = 'Rezervarea dumneavoastra de la Noblesse';
         try {
             Mail::send('emails.invoice', [], function (Message $message) use ($to, $subject, $invoice) {
                 $message->to($to)

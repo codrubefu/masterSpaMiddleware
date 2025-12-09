@@ -58,7 +58,7 @@
            <td style="width: 7%">
       </td>
       <td class="invoice-info" >
-        <h2>FACTURA</h2>
+        <h2>REZERVARE/FACTURA</h2>
          <p style="text-align: left">
             SERIE:NBLS<br>
             Număr: {{ $nrfactura }}<br>
