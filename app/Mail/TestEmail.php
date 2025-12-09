@@ -41,7 +41,6 @@ class TestEmail extends Mailable
         return new Content(
             view: 'emails.test',
             with: [
-                'message' => $this->testMessage,
                 'timestamp' => now(),
             ],
         );
