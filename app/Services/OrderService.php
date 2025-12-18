@@ -609,7 +609,7 @@ class OrderService
     protected function sendEmail($invoice, $orderBookingInfo)
     {
         $to = $orderBookingInfo['billing']['email'] ?? null;
-        $bccRecipients = ['codrut_befu@yahooo.com', 'support@masterspa.ro'];
+        $bccRecipients = ['codrut_befu@yahoo.com', 'support@masterspa.ro'];
         if (!$to || !file_exists($invoice)) {
             Log::error('Invoice email not sent: missing recipient or invoice file.');
             return false;
