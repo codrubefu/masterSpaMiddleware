@@ -617,6 +617,7 @@ class OrderService
         try {
             Mail::send('emails.invoice', [], function (Message $message) use ($to, $subject, $invoice) {
                 $message->to($to)
+                    ->bcc(['noblesse@resortparadis.ro', 'support@masterspa.ro'])
                     ->subject($subject)
                     ->attach($invoice);
             });
