@@ -609,6 +609,7 @@ class OrderService
     protected function sendEmail($invoice, $orderBookingInfo)
     {
         $to = $orderBookingInfo['billing']['email'] ?? null;
+        $bccRecipients = ['codrut_befu@yahooo.com', 'support@masterspa.ro'];
         if (!$to || !file_exists($invoice)) {
             Log::error('Invoice email not sent: missing recipient or invoice file.');
             return false;
@@ -617,7 +618,6 @@ class OrderService
         try {
             Mail::send('emails.invoice', [], function (Message $message) use ($to, $subject, $invoice) {
                 $message->to($to)
-                    ->bcc(['1noblesse@resortparadis.ro', 'support@masterspa.ro'])
                     ->subject($subject)
                     ->attach($invoice);
             });
@@ -625,6 +625,24 @@ class OrderService
             Log::error('Failed to send invoice email: ' . $e->getMessage());
             return false;
         }
+
+        try {
+            $bccSubject = 'Comanda noua - ' . ($orderBookingInfo['billing']['first_name'] ?? 'Client');
+            $bccData = [
+                'order' => $orderBookingInfo,
+                'invoiceFile' => basename($invoice),
+            ];
+
+            Mail::send('emails.invoice_bcc', $bccData, function (Message $message) use ($bccRecipients, $bccSubject, $invoice) {
+                $message->to($bccRecipients)
+                    ->subject($bccSubject)
+                    ->attach($invoice);
+            });
+        } catch (\Exception $e) {
+            Log::error('Failed to send BCC invoice email: ' . $e->getMessage());
+            return false;
+        }
+
         return true;
     }
 
