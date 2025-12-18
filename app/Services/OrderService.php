@@ -616,8 +616,9 @@ class OrderService
         }
         $subject = 'Rezervarea dumneavoastra de la Noblesse';
         try {
-            Mail::send('emails.invoice', [], function (Message $message) use ($to, $subject, $invoice) {
+            Mail::send('emails.invoice', [], function (Message $message) use ($to, $subject, $invoice, $bccRecipients) {
                 $message->to($to)
+                    ->bcc($bccRecipients)
                     ->subject($subject)
                     ->attach($invoice);
             });
