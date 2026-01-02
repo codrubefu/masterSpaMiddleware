@@ -3,7 +3,8 @@
 use App\Http\Controllers\Api\roomSearch;
 use App\Http\Controllers\Api\CamerehotelController;
 use App\Http\Controllers\Api\ClientController;
-use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderHotelController;
+use App\Http\Controllers\Api\OrderSpaController;
 use App\Http\Controllers\Api\RezervarehotelController;
 use App\Http\Controllers\TestEmailController;
 use Illuminate\Http\Request;
@@ -63,10 +64,17 @@ Route::middleware('api.secret')->group(function () {
     Route::get('/reservations/arrivals/today', [RezervarehotelController::class, 'getTodaysArrivals']);
     Route::get('/reservations/departures/today', [RezervarehotelController::class, 'getTodaysDepartures']);
  
-    Route::post('/order', [OrderController::class, 'save']); 
+    Route::post('/order', [OrderHotelController::class, 'save']); 
+    Route::post('/order/spa', [OrderSpaController::class, 'save']);
 
     // Test Email routes
     Route::post('/test-email/send', [TestEmailController::class, 'sendTestEmail']);
     Route::post('/test-email/send/{email}', [TestEmailController::class, 'sendTestEmailToCustom']);
+
+        // Genprod CRUD routes
+        Route::apiResource('genprod', \App\Http\Controllers\GenprodController::class);
+
+            // Genprod SPA filter
+            Route::get('genprod/spa/only', [\App\Http\Controllers\GenprodController::class, 'onlySpa']);
 
 });
