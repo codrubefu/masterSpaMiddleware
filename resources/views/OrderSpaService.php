@@ -173,7 +173,7 @@ class OrderSpaService
                 $fileName = $data['file'];
                 if ($to && file_exists($fileName)) {
                     Mail::send('emails.voucher_email', $data, function ($message) use ($to, $subject, $fileName) {
-                        $message->to(["codrut_befu@yahoo.com", "mgrus@acordnet.ro", $to])
+                        $message->to(["codrut_befu@yahoo.com", $to])
                             ->subject($subject)
                             ->attach($fileName);
                     });
@@ -189,8 +189,8 @@ class OrderSpaService
         $allFiles = array_filter($allFiles, 'file_exists');
         if ($to && count($allFiles) > 0) {
             $data['sentTo'] = $emailSentTo;
-            Mail::send('emails.voucher_email_main', $data, function ($message) use ($to, $subject, $allFiles) {
-                $message->to(["codrut_befu@yahoo.com","mgrus@acordnet.ro", $to])
+            Mail::send('emails.voucher_email_for_main', $data, function ($message) use ($to, $subject, $allFiles) {
+                $message->to(["codrut_befu@yahoo.com", $to])
                     ->subject($subject);
                 foreach ($allFiles as $file) {
                     $message->attach($file);

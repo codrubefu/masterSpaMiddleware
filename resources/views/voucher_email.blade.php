@@ -38,6 +38,5 @@
         <div class="info">Contact: +4 0241 74 24 01</div>
         @endif
     </div>
-
 </body>
 </html>
