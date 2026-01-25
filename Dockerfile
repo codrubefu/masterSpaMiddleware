@@ -10,11 +10,14 @@ RUN apt-get update && apt-get install -y \
     git \
     zip \
     libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
     ca-certificates \
-    && docker-php-ext-install pdo mbstring zip exif pcntl
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo mbstring zip exif pcntl
 
 # Adăugare key și repository Microsoft (compatibil cu Debian 12)
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft.gpg \

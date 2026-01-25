@@ -44,20 +44,29 @@ trait OrderServiceCommonTrait
 
     private function findOrCreateClient($clientInfo)
     {
-        $client = \App\Models\Client::where('email',  $clientInfo['email'])
+        // Validate mandatory fields
+        foreach (['last_name', 'first_name', 'phone', 'email'] as $field) {
+            if (empty($clientInfo[$field])) {
+                throw new \InvalidArgumentException("Missing mandatory clientInfo field: $field");
+            }
+        }
+
+        $client = \App\Models\Client::where('email', $clientInfo['email'])
             ->where('mobilcontact', $clientInfo['phone'])
             ->first();
+
         if (!$client) {
             $client = new \App\Models\Client();
             $client->email = $clientInfo['email'];
             $client->mobilcontact = $clientInfo['phone'];
         }
+
         $isPj = false;
         $client->den        = $clientInfo['last_name'];
         $client->prenume    = $clientInfo['first_name'];
-        $client->adresa1    = $clientInfo['address_1'];
-        $client->adresa2    = $clientInfo['address_2'];
-        $client->pj         =  $isPj;
+        $client->adresa1    = $clientInfo['address_1'] ?? null;
+        $client->adresa2    = $clientInfo['address_2'] ?? null;
+        $client->pj         = $isPj;
         $client->modp       = 'Website';
         $client->obscui     = 'independent';
         $client->startper   = date('Y-m-d H:i:s.v');
@@ -67,14 +76,15 @@ trait OrderServiceCommonTrait
         $client->datacreare = date('Y-m-d H:i:s.v');
         $client->compid     = 'Website';
         $client->tip        = 'Website';
-        $client->oras       = $clientInfo['city'];
-        $client->judet      = \App\Helper\Judet::getNameByCode($clientInfo['state']);
-        $client->tara       = \App\Helper\Country::getNameByCode($clientInfo['country']);
+        $client->oras       = $clientInfo['city'] ?? null;
+        $client->judet      = isset($clientInfo['state']) ? \App\Helper\Judet::getNameByCode($clientInfo['state']) : null;
+        $client->tara       = isset($clientInfo['country']) ? \App\Helper\Country::getNameByCode($clientInfo['country']) : null;
         $client->valuta     = 'RON';
         $client->hotel      = 'Extra';
         $client->cnpcui     = '0000000000000';
         $client->save();
-        $client = \App\Models\Client::where('email',  $clientInfo['email'])
+
+        $client = \App\Models\Client::where('email', $clientInfo['email'])
             ->where('mobilcontact', $clientInfo['phone'])
             ->first();
         return $client;
@@ -399,7 +409,7 @@ trait OrderServiceCommonTrait
         $data['totalTax'] = round($orderBookingInfo['total'] - $this->getVatFromPrice($data['total']), 2);
         $data['totalWithoutTax'] =  round($this->getVatFromPrice($data['total']), 2);
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoice', $data);
-
+        
         $invoiceDir = storage_path('invoices' . '/' . date('y') . '/' . date('m'));
         if (!file_exists($invoiceDir)) {
             mkdir($invoiceDir, 0777, true);

@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomSearchTestController;
 use App\Http\Controllers\EnvConfigController;
+use App\Http\Controllers\VoucherPreviewController;
 
+Route::get('/voucher-preview', [VoucherPreviewController::class, 'show'])->name('voucher.preview');
 /*
 |--------------------------------------------------------------------------
 | Web Routes
