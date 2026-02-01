@@ -52,7 +52,7 @@ class GenprodController extends Controller
         public function onlySpa()
         {
           
-            $spaItems = Genprod::whereIn('clasa', ['PACHETE', 'ABONAMENTE'])->with('pret')->get();
+            $spaItems = Genprod::whereIn('clasa', ['PACHETE', 'ABONAMENTE','Spa Comercial','Spa Medical'])->with('pret')->get();
             return response()->json($spaItems);
         }
 }
