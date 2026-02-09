@@ -191,8 +191,12 @@ class OrderSpaService
         // Key 0: send all vouchers as attachments to the main client
         $allFiles = array_column($voucherData, 'file');
         $allFiles = array_filter($allFiles, 'file_exists');
+        if(!$to){
+            $to = $orderInfo['billing']['email'] ?? null;
+        }
         if ($to && count($allFiles) > 0) {
             $data['sentTo'] = $emailSentTo;
+            
             Mail::send('emails.voucher_email_main', $data, function ($message) use ($to, $subject, $allFiles) {
                 $message->to(["codrut_befu@yahoo.com", "mgrus@acordnet.ro", $to])
                     ->subject($subject);
