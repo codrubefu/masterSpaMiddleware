@@ -77,4 +77,6 @@ Route::middleware('api.secret')->group(function () {
             // Genprod SPA filter
             Route::get('genprod/spa/only', [\App\Http\Controllers\GenprodController::class, 'onlySpa']);
 
+
 });
+            Route::get('/spa/preview', [\App\Http\Controllers\VoucherPreviewController::class, 'show']);

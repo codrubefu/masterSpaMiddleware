@@ -88,25 +88,34 @@
         }
         .voucher-code{
             position: absolute;
-            bottom: 10px;
-            width: 100%;
-            text-align: center;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            width: 100px;
+            text-align: right;
+            right: 40px;
         }
+
         .voucher-code > div {
-            display: block;
+            
             padding: 10px 20px;
             background: #ffffff;
             opacity: 0.8;
             border-radius: 16px;
-            margin: 0 auto;
-            max-width: 400px;
+            height: 300px;
+            min-width: 100px;
+            box-sizing: border-box;
+            position: relative;
+            right: 20px;
         }
 
         .voucher-barcode-img {
             display: block;
-            margin: 0 auto 6px auto;
-            height: 60px;
             opacity: 1;
+            transform: rotate(90deg);
+            margin-top:120px;
+            position: absolute;
+            left:-50px;
         }
 
         .voucher-barcode-code {
@@ -119,6 +128,12 @@
             letter-spacing: 2px;
             opacity: 1;
             background: none;
+            transform: rotate(90deg);
+            white-space: nowrap;
+            position: absolute;
+            top:50%;
+            transform: translateY(-50%) rotate(90deg);
+            left:70px;
         }
 
        
@@ -149,7 +164,7 @@
                     $dns1d = new \Milon\Barcode\DNS1D();
                     $barcode = $dns1d->getBarcodePNG($voucher_no ?? '1234567890', 'C128', 2, 60);
                 @endphp
-                <img src="data:image/png;base64,{{ $barcode }}" alt="Voucher Barcode" class="voucher-barcode-img" />
+                <img src="data:image/png;base64,{{ $barcode }}" alt="Voucher Barcode" class="voucher-barcode-img" style="transform: rotate(90deg);" />
                 <div class="voucher-barcode-code">{{ $voucher_no ?? '1234567890' }}</div>
             </div>
         </div>
