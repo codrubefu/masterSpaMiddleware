@@ -428,7 +428,7 @@ trait OrderServiceCommonTrait
         $trzdetfact->idcl = $client->spaid;
         $trzdetfact->clasa = $price->clasa;
         $trzdetfact->grupa = $price->grupa;
-        $trzdetfact->art = $item['meta_data'][0]['value'];
+        $trzdetfact->art = isset($item['meta_data'][0]) ? $item['meta_data'][0]['value'] : null;
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
         $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity), 2);

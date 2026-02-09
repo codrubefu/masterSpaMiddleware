@@ -15,7 +15,6 @@ class OrderSpaService
     public function saveOrder(array $orderInfo)
     {
         $orderInfo = $this->parseOrderInfo($orderInfo);
-        $orderBookingInfo = $orderInfo['custom_info'];
         $clientInfo = $orderInfo['billing'];
         foreach ($orderInfo['meta_data'] as $key => $value) {
             if (strpos($value['key'], '_billing_') !== false) {
@@ -25,7 +24,7 @@ class OrderSpaService
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
         $clientPj = null;
-        if ($clientInfo['_billing_company_details'] == 1) {
+        if (isset($clientInfo['_billing_company_details']) && $clientInfo['_billing_company_details'] == 1) {
             $clientPj = $this->findOrCreateClientPj($clientInfo, $client->spaid);
         }
 
@@ -81,25 +80,30 @@ class OrderSpaService
         $clients = [];
         $x = 0;
         foreach ($orderInfo['items'] as $key => $item) {
-            foreach ($item['meta_data'] as $meta) {
-                if (preg_match('/Abonat - (Nume|Prenume|Email|Trimite email|Telefon) \\[(\d+)\\]/', $meta['key'], $matches)) {
-                    $field = strtolower(str_replace(' ', '_', $matches[1]));
-                    $index = (int)$matches[2] - 1;
-                    if (!isset($clients[$index])) {
-                        $clients[$index] = ['last_name' => '', 'first_name' => '', 'email' => '', 'send' => false, 'phone' => ''];
-                    }
-                    if ($field === 'nume') {
-                        $orderInfo['items'][$key]['clients'][$index]['last_name'] = $meta['value'];
-                    } elseif ($field === 'prenume') {
-                        $orderInfo['items'][$key]['clients'][$index]['first_name'] = $meta['value'];
-                    } elseif ($field === 'email') {
-                        $orderInfo['items'][$key]['clients'][$index]['email'] = $meta['value'];
-                    } elseif ($field === 'trimite_email') {
-                        $orderInfo['items'][$key]['clients'][$index]['send'] = (strtolower($meta['value']) === 'da');
-                    } elseif ($field === 'telefon') {
-                        $orderInfo['items'][$key]['clients'][$index]['phone'] = $meta['value'];
+            if (isset($item['meta_data']) && count($item['meta_data']) > 0) {
+
+                foreach ($item['meta_data'] as $meta) {
+                    if (preg_match('/Abonat - (Nume|Prenume|Email|Trimite email|Telefon) \\[(\d+)\\]/', $meta['key'], $matches)) {
+                        $field = strtolower(str_replace(' ', '_', $matches[1]));
+                        $index = (int)$matches[2] - 1;
+                        if (!isset($orderInfo['items'][$key]['clients'][$index])) {
+                            $orderInfo['items'][$key]['clients'][$index] = ['last_name' => '', 'first_name' => '', 'email' => '', 'send' => false, 'phone' => ''];
+                        }
+                        if ($field === 'nume') {
+                            $orderInfo['items'][$key]['clients'][$index]['last_name'] = $meta['value'];
+                        } elseif ($field === 'prenume') {
+                            $orderInfo['items'][$key]['clients'][$index]['first_name'] = $meta['value'];
+                        } elseif ($field === 'email') {
+                            $orderInfo['items'][$key]['clients'][$index]['email'] = $meta['value'];
+                        } elseif ($field === 'trimite_email') {
+                            $orderInfo['items'][$key]['clients'][$index]['send'] = (strtolower($meta['value']) === 'da');
+                        } elseif ($field === 'telefon') {
+                            $orderInfo['items'][$key]['clients'][$index]['phone'] = $meta['value'];
+                        }
                     }
                 }
+            } else {
+                $orderInfo['items'][$key]['clients'] = [['last_name' => '', 'first_name' => '', 'email' => '', 'send' => false, 'phone' => '']];
             }
         }
 
@@ -190,7 +194,7 @@ class OrderSpaService
         if ($to && count($allFiles) > 0) {
             $data['sentTo'] = $emailSentTo;
             Mail::send('emails.voucher_email_main', $data, function ($message) use ($to, $subject, $allFiles) {
-                $message->to(["codrut_befu@yahoo.com","mgrus@acordnet.ro", $to])
+                $message->to(["codrut_befu@yahoo.com", "mgrus@acordnet.ro", $to])
                     ->subject($subject);
                 foreach ($allFiles as $file) {
                     $message->attach($file);
