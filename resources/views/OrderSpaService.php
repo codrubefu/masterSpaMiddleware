@@ -104,12 +104,11 @@ class OrderSpaService
         }
 
         foreach ($orderInfo['items'] as $key => $item) {
-            if(!isset($item['clients']) || count($item['clients']) == 0) {
-               continue; // Skip if no clients found for this item
-            }
-            foreach ($item['clients'] as $index => $clientData) {
-                $orderInfo['items'][$key]['clients'][$index]['voucher'] =  $orderInfo['id'] . rand(1000, 9999) . $x;
-                $x++;
+            if(isset($item['clients']) && count($item['clients']) > 0) {
+                foreach ($item['clients'] as $index => $clientData) {
+                    $orderInfo['items'][$key]['clients'][$index]['voucher'] =  $orderInfo['id'] . rand(1000, 9999) . $x;
+                    $x++;
+                }
             }
         }
 
