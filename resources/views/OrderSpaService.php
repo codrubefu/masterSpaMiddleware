@@ -138,7 +138,7 @@ class OrderSpaService
     {
 
         foreach ($orderInfo['items'] as $key => $item) {
-            if (isset($item['clients'])) {
+            if (isset($item['clients']) && is_array($item['clients'])) {
                 foreach ($item['clients'] as $clientData) {
                     $data =  [
                         'client' => $clientData['email'] ?? $orderInfo['billing']['email'],
