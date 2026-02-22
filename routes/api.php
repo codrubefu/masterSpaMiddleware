@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\OrderHotelController;
 use App\Http\Controllers\Api\OrderSpaController;
 use App\Http\Controllers\Api\RezervarehotelController;
+use App\Http\Controllers\PaymentsController;
 use App\Http\Controllers\TestEmailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -80,3 +81,6 @@ Route::middleware('api.secret')->group(function () {
 
 });
             Route::get('/spa/preview', [\App\Http\Controllers\VoucherPreviewController::class, 'show']);
+
+Route::post('/payment', [PaymentsController::class, 'payment']);
+Route::post('/is-payment-done', [PaymentsController::class, 'isPaymentDone']);
