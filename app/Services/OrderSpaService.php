@@ -130,7 +130,7 @@ class OrderSpaService
         if ($clientPj) {
             $client = $clientPj;
         }
-        $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
+      //  $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
     }
 
     /**

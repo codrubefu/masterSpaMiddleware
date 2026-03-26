@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 trait OrderServiceCommonTrait
 {
-    protected $nrGest = 10101;
+    protected $nrGest = 1;
     protected $vatRate = 11;
     protected $number;
     protected $invoiceNo;
