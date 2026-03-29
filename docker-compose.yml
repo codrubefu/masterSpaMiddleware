@@ -21,7 +21,7 @@ services:
       - DB_CONNECTION=sqlsrv
       - DB_HOST=sqlserver
       - DB_PORT=1433
-      - DB_DATABASE=mirage
+      - DB_DATABASE=spa_Data
       - DB_USERNAME=sa
       - DB_PASSWORD=YourStrong!Passw0rd
 
