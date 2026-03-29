@@ -434,13 +434,14 @@ trait OrderServiceCommonTrait
 
         $this->sendEmail($fileName, $orderBookingInfo);
     }
+
     public function createTrzdetfact($client, $pret,  $quantity, $nrFact, $roomType, $item,$spa = false)
     {
         if($spa){
-            $targetArt = 'ABONAMENTE';
+            $targetArt = $item['name'] ?? null;
             $price = \App\Models\Genprod::query()
                 // Legacy tables often store padded CHAR values (trailing spaces).
-                ->whereRaw('RTRIM(LTRIM(clasa)) = ?', [$targetArt])
+                ->whereRaw('RTRIM(LTRIM(art)) = ?', [$targetArt])
                 ->first();
         }else{
             $price = \App\Models\Pret::where('tipcamera', $roomType)->first();
@@ -467,8 +468,10 @@ trait OrderServiceCommonTrait
         $trzdetfact->idpers = '0';
         $trzdetfact->cotatva = $this->vatRate / 100;
         $trzdetfact->save();
+      
         return $trzdetfact;
     }
+    
     public function createTrzfact($client, $pret, $trznp, $invoiceNo)
     {
         $trzfact = new \App\Models\Trzfact();
