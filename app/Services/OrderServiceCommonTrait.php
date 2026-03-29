@@ -24,6 +24,9 @@ trait OrderServiceCommonTrait
     {
         $nextNrf = DB::transaction(function () {
             $gest = \App\Models\Gest::where('nrgest', $this->nrGest)->first();
+            if(!$gest){
+                return 1;
+            }
             $gest->nrf = $gest->nrf + 1;
             $gest->save();
             return $gest->nrf;
