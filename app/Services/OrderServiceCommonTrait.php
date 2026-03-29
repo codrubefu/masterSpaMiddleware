@@ -23,7 +23,7 @@ trait OrderServiceCommonTrait
     private function generateNextInvoiceSequence(): string
     {
         $nextNrf = DB::transaction(function () {
-            $gest = \App\Models\Gest::where('nrgest', $this->nrGest)->lockForUpdate()->firstOrFail();
+            $gest = \App\Models\Gest::where('nrgest', $this->nrGest)->lockForUpdate()->first();
             $gest->nrf = $gest->nrf + 1;
             $gest->save();
             return $gest->nrf;
