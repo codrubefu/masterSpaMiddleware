@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoomSearchTestController;
 use App\Http\Controllers\EnvConfigController;
+use App\Http\Controllers\ModelSaveLogController;
 use App\Http\Controllers\VoucherPreviewController;
 
 Route::get('/voucher-preview', [VoucherPreviewController::class, 'show'])->name('voucher.preview');
@@ -25,3 +26,5 @@ Route::get('/env-config', [EnvConfigController::class, 'index'])->name('env-conf
 
 Route::get('/room-search-test', [RoomSearchTestController::class, 'showForm'])->name('room-search-test.form');
 Route::post('/room-search-test', [RoomSearchTestController::class, 'submitForm'])->name('room-search-test.submit');
+
+Route::get('/model-save-logs', [ModelSaveLogController::class, 'index'])->name('model-save-logs.index');
