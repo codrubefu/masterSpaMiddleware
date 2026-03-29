@@ -17,13 +17,19 @@ class ModelSaveLogController extends Controller
             $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
 
             foreach ($lines as $line) {
-                preg_match('/^\[(?<logged_at>[^\]]+)\]\s+\w+\.\w+:\s+Model saved\s+(?<context>\{.*\})\s+\[\]$/', $line, $matches);
-
-                if (! isset($matches['context'])) {
+                if (! preg_match('/^\[(?<logged_at>[^\]]+)\]\s+\S+:\s+Model saved(?: event fired)?\s+/', $line, $matches)) {
                     continue;
                 }
 
-                $context = json_decode($matches['context'], true);
+                $jsonStart = strpos($line, '{');
+                $jsonEnd = strrpos($line, '}');
+
+                if ($jsonStart === false || $jsonEnd === false || $jsonEnd < $jsonStart) {
+                    continue;
+                }
+
+                $contextJson = substr($line, $jsonStart, $jsonEnd - $jsonStart + 1);
+                $context = json_decode($contextJson, true);
 
                 if (! is_array($context)) {
                     continue;
@@ -36,7 +42,7 @@ class ModelSaveLogController extends Controller
                     'model' => $context['model'] ?? null,
                     'table' => $context['table'] ?? null,
                     'primary_key' => $context['primary_key'] ?? null,
-                    'controller' => $context['controller'] ?? null,
+                    'controller' => str_replace("App\\Http\\Controllers\\Api\\", '', $context['controller'] ?? '') ?? null,
                     'saved_fields_json' => json_encode($context['saved_fields'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 ];
             }

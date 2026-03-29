@@ -61,8 +61,6 @@
                 <tr>
                     <th>Saved At</th>
                     <th>Controller</th>
-                    <th>Event</th>
-                    <th>Model</th>
                     <th>Table</th>
                     <th>Primary Key</th>
                     <th>Saved Fields (JSON)</th>
@@ -74,8 +72,7 @@
                     <tr>
                         <td>{{ $entry['saved_at'] ?? '-' }}</td>
                         <td>{{ $entry['controller'] ?? '-' }}</td>
-                        <td>{{ $entry['event'] ?? '-' }}</td>
-                        <td>{{ $entry['model'] ?? '-' }}</td>
+                     
                         <td>{{ $entry['table'] ?? '-' }}</td>
                         <td>{{ $entry['primary_key'] ?? '-' }}</td>
                         <td><pre>{{ $entry['saved_fields_json'] ?? '{}' }}</pre></td>
