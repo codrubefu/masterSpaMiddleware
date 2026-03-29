@@ -27,6 +27,14 @@
             vertical-align: top;
         }
 
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 12px;
+            max-width: 420px;
+        }
+
         th {
             background-color: #f3f4f6;
         }
@@ -57,6 +65,7 @@
                     <th>Model</th>
                     <th>Table</th>
                     <th>Primary Key</th>
+                    <th>Saved Fields (JSON)</th>
                     <th>Logged At</th>
                 </tr>
             </thead>
@@ -69,6 +78,7 @@
                         <td>{{ $entry['model'] ?? '-' }}</td>
                         <td>{{ $entry['table'] ?? '-' }}</td>
                         <td>{{ $entry['primary_key'] ?? '-' }}</td>
+                        <td><pre>{{ $entry['saved_fields_json'] ?? '{}' }}</pre></td>
                         <td>{{ $entry['logged_at'] ?? '-' }}</td>
                     </tr>
                 @endforeach

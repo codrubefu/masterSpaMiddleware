@@ -37,6 +37,7 @@ class ModelSaveLogController extends Controller
                     'table' => $context['table'] ?? null,
                     'primary_key' => $context['primary_key'] ?? null,
                     'controller' => $context['controller'] ?? null,
+                    'saved_fields_json' => json_encode($context['saved_fields'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 ];
             }
         }

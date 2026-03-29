@@ -39,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
                 'table' => $model->getTable(),
                 'primary_key' => $model->getKey(),
                 'controller' => $controllerAction ?? 'N/A (non-http context)',
+                'saved_fields' => $model->getAttributes(),
             ]);
         });
     }
