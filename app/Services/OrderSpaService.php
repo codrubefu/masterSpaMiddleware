@@ -63,7 +63,7 @@ class OrderSpaService
 
             $np = $trznp->nrnpint . '.00';
 
-            $bookedRooms = $this->processOrderItem($item,  $client, $clientPj, $bookedRooms,  $rezervare, $trznp, $trzfact, null);
+            $bookedRooms = $this->processOrderItem($item,  $client, $clientPj,$trznp, $trzfact);
         }
 
         $this->sendVoucher($orderInfo);
@@ -119,7 +119,7 @@ class OrderSpaService
     }
 
 
-    private function processOrderItem($item,  $client, $clientPj, $bookedRooms,  $rezervare, $trznp,  $trzfact, $roomType)
+    private function processOrderItem($item,  $client, $clientPj, $trznp,  $trzfact)
     {
 
         // Add parameters: $rezervare, $trznp, $tipCamera, $selectedRoom
@@ -130,7 +130,7 @@ class OrderSpaService
         if ($clientPj) {
             $client = $clientPj;
         }
-      //  $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
+        $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, null, $item, true);
     }
 
     /**

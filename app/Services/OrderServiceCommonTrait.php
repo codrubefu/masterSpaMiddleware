@@ -419,9 +419,22 @@ trait OrderServiceCommonTrait
 
         $this->sendEmail($fileName, $orderBookingInfo);
     }
-    public function createTrzdetfact($client, $pret,  $quantity, $nrFact, $roomType, $item)
+    public function createTrzdetfact($client, $pret,  $quantity, $nrFact, $roomType, $item,$spa = false)
     {
-        $price = \App\Models\Pret::where('tipcamera', $roomType)->first();
+        if($spa){
+            $targetArt = 'ABONAMENTE';
+            $price = \App\Models\Genprod::query()
+                // Legacy tables often store padded CHAR values (trailing spaces).
+                ->whereRaw('RTRIM(LTRIM(clasa)) = ?', [$targetArt])
+                ->first();
+        }else{
+            $price = \App\Models\Pret::where('tipcamera', $roomType)->first();
+        }
+
+        if (!$price) {
+            throw new \RuntimeException('Price source not found for item.');
+        }
+
         $trzdetfact = new \App\Models\Trzdetfact();
         $trzdetfact->idfirma = 1;
         $trzdetfact->nrfact = $nrFact;
@@ -482,3 +495,4 @@ trait OrderServiceCommonTrait
         return $trzfact;
     }
 }
+
