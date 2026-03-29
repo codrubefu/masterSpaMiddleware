@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,33 +22,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Model::saved(function (Model $model): void {
+        Event::listen('eloquent.saved: *', function (string $eventName, array $data): void {
+            $model = $data[0] ?? null;
+
+            if (! $model instanceof Model) {
+                return;
+            }
+
             $route = request()?->route();
             $controllerAction = $route?->getActionName();
-            $context = [
+
+            Log::channel('model_saves')->info('Model saved', [
                 'saved_at' => now()->toDateTimeString(),
+                'event' => $eventName,
                 'model' => $model::class,
                 'table' => $model->getTable(),
                 'primary_key' => $model->getKey(),
-                'was_recently_created' => $model->wasRecentlyCreated,
-                'changes' => $model->getChanges(),
                 'controller' => $controllerAction ?? 'N/A (non-http context)',
-            ];
-
-            Log::info('Model saved event fired', $context);
-
-            try {
-                Log::channel('model_saves')->info('Model saved', $context);
-            } catch (\Throwable $exception) {
-                Log::error('Failed to write model save log to model_saves channel', [
-                    'message' => $exception->getMessage(),
-                    'file' => $exception->getFile(),
-                    'line' => $exception->getLine(),
-                    'model' => $model::class,
-                    'table' => $model->getTable(),
-                    'primary_key' => $model->getKey(),
-                ]);
-            }
+            ]);
         });
     }
 }

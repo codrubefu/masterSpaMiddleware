@@ -32,6 +32,7 @@ class ModelSaveLogController extends Controller
                 $entries[] = [
                     'logged_at' => $matches['logged_at'] ?? null,
                     'saved_at' => $context['saved_at'] ?? null,
+                    'event' => $context['event'] ?? null,
                     'model' => $context['model'] ?? null,
                     'table' => $context['table'] ?? null,
                     'primary_key' => $context['primary_key'] ?? null,

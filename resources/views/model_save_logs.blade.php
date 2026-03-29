@@ -53,6 +53,7 @@
                 <tr>
                     <th>Saved At</th>
                     <th>Controller</th>
+                    <th>Event</th>
                     <th>Model</th>
                     <th>Table</th>
                     <th>Primary Key</th>
@@ -64,6 +65,7 @@
                     <tr>
                         <td>{{ $entry['saved_at'] ?? '-' }}</td>
                         <td>{{ $entry['controller'] ?? '-' }}</td>
+                        <td>{{ $entry['event'] ?? '-' }}</td>
                         <td>{{ $entry['model'] ?? '-' }}</td>
                         <td>{{ $entry['table'] ?? '-' }}</td>
                         <td>{{ $entry['primary_key'] ?? '-' }}</td>
