@@ -45,6 +45,7 @@ class RoomSearchService
                 'type' => $room->tip,
                 'typeName' => $room->tiplung,
                 'hotel' => $room->idhotel,
+                'roomKey' => $this->buildRoomKey($room->idhotel, $room->nr),
                 'price' => $room->pret[0]->pret ?? 0,
             ];
         })->toArray();
@@ -56,14 +57,17 @@ class RoomSearchService
         $end   = Carbon::parse($endDate)->startOfDay();     // 2025-11-07 00:00:00 (limita exclusivă)
 
         $reservedRooms = DB::table('rezervarehotel')
+            ->select('idhotel', 'camera')
             // suprapunere: [datas, dataf) cu [start, end)
             ->where('datas', '<', $end)
             ->where('dataf', '>', $start)
             ->distinct()              // evită duplicatele dacă o cameră are mai multe rânduri
-            ->pluck('camera')
-            ->toArray();
-            
-        $reservedSet = array_flip($reservedRooms); // for fast lookup
+            ->get();
+
+        $reservedSet = [];
+        foreach ($reservedRooms as $reservedRoom) {
+            $reservedSet[$this->buildRoomKey($reservedRoom->idhotel, $reservedRoom->camera)] = true;
+        }
 
         // Step 4: Generate all combinations of rooms with the specified number
         $combinations = $this->getRoomCombinations($roomList, $distribution, $numberOfRooms);
@@ -73,7 +77,7 @@ class RoomSearchService
         foreach ($combinations as $combo) {
             $hasReserved = false;
             foreach ($combo as $room) {
-                if (isset($reservedSet[$room['nr']])) {
+                if (isset($reservedSet[$room['roomKey']])) {
                     $hasReserved = true;
                     break;
                 }
@@ -87,10 +91,13 @@ class RoomSearchService
         $twos = [];
         $mixed = [];
         foreach ($grouped as $item) {
-            $hotels = $item['hotels'];
-            if (preg_match('/^1+$/', $hotels)) {
+            $hotelIds = array_unique(array_map(function ($room) {
+                return (string) $room['hotel'];
+            }, $item['combo'][0]));
+
+            if (count($hotelIds) === 1 && $hotelIds[0] === '1') {
                 $ones[] = $item;
-            } elseif (preg_match('/^2+$/', $hotels)) {
+            } elseif (count($hotelIds) === 1 && $hotelIds[0] === '2') {
                 $twos[] = $item;
             } else {
                 $mixed[] = $item;
@@ -129,13 +136,17 @@ class RoomSearchService
         foreach ($availableCombinations as  $combo) {
             $types = [];
             $price = 0;
-            $hotel = '';
+            $hotels = [];
             foreach ($combo as $room) {
                 $types[] = $room['type'];
                 $price += $room['price'];
-                $hotel .= $room['hotel'];
+                $hotels[] = $room['hotel'];
             }
-            $key = implode('-', $types);
+            $keyParts = [];
+            foreach ($combo as $index => $room) {
+                $keyParts[] = $hotels[$index] . ':' . $types[$index];
+            }
+            $key = implode('-', $keyParts);
             // Only keep the first combo for each type
          
             if (!isset($newCombinations[$key])) {
@@ -143,7 +154,7 @@ class RoomSearchService
                     'combo' => [$combo],
                     'price_combo' => $price,
                 ];
-                $newCombinations[$key]['hotels'] = $hotel;
+                $newCombinations[$key]['hotels'] = implode('', $hotels);
             }
         }
 
@@ -152,6 +163,11 @@ class RoomSearchService
         });
 
         return $newCombinations;
+    }
+
+    private function buildRoomKey($hotelId, $roomNumber): string
+    {
+        return $hotelId . ':' . $roomNumber;
     }
 
     // Helper to generate all combinations of rooms that meet the per-room people distribution
