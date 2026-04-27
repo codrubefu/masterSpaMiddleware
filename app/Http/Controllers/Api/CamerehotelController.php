@@ -326,6 +326,7 @@ class CamerehotelController extends Controller
      */
     public function getRoomsGroupedByType()
     {
+        
         $roomsGrouped = Camerehotel::orderBy('tip')
             ->orderBy('nr')
             ->get()
@@ -357,7 +358,9 @@ class CamerehotelController extends Controller
                         $result[$i]['pret'][$pret->idpret] = [
                             'pret' => $pret->pret,
                             'art' => $pret->art,
-                            'idpret' => $pret->idpret
+                            'idpret' => $pret->idpret,
+                            'data_start' => $pret->data_start,
+                            'data_end' => $pret->data_end,
                         ];
                     }
                 } else {
@@ -369,5 +372,28 @@ class CamerehotelController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Display the active database connection settings.
+     */
+    public function getDatabaseSettings()
+    {
+        $defaultConnection = config('database.default');
+        $connection = config("database.connections.{$defaultConnection}", []);
+
+        if (isset($connection['password']) && $connection['password'] !== null && $connection['password'] !== '') {
+            $connection['password'] = '********';
+        }
+
+        return response()->json([
+            'default_connection' => $defaultConnection,
+            'driver' => $connection['driver'] ?? null,
+            'host' => $connection['host'] ?? null,
+            'port' => $connection['port'] ?? null,
+            'database' => $connection['database'] ?? null,
+            'username' => $connection['username'] ?? null,
+            'settings' => $connection,
+        ]);
     }
 }

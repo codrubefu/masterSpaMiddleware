@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Protected API routes that require secret
 Route::middleware('api.secret')->group(function () {
     Route::post('/rooms/search-combinations', [roomSearch::class, 'searchAvailableRoomCombinations']);
+    Route::get('/debug/database-settings', [CamerehotelController::class, 'getDatabaseSettings']);
 
     // Camerehotel API routes - specific routes before resource routes
     Route::get('/camerehotel/grouped-by-type', [CamerehotelController::class, 'getRoomsGroupedByType']);

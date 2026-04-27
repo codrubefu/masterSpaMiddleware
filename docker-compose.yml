@@ -19,9 +19,9 @@ services:
           - laravel-app
     environment:
       - DB_CONNECTION=sqlsrv
-      - DB_HOST=sqlserver
-      - DB_PORT=1433
-      - DB_DATABASE=spa_Data
+      - DB_HOST=95.77.98.62
+      - DB_PORT=8121
+      - DB_DATABASE=spa
       - DB_USERNAME=sa
       - DB_PASSWORD=YourStrong!Passw0rd
 

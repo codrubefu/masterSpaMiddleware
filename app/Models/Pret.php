@@ -42,6 +42,8 @@ class Pret extends Model
         'phpercam',
         'phspecial',
         'tipcamera',
+        'data_start',
+        'data_end',
     ];
 
     public function camerehotel()
