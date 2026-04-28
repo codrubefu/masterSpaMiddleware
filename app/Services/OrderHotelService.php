@@ -77,8 +77,8 @@ class OrderHotelService
             } else {
                 throw new \Exception('No available room found for the given criteria.');
             }
-
-            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, $item['meta_data'][0]['value']);
+            $packageName = $item['meta_data'][0]['value'] ?? $item['name'] ?? '';
+            $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, $packageName);
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
             if ($trznp === null && $rezervare) {
