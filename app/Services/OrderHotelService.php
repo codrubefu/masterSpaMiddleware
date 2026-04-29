@@ -39,7 +39,7 @@ class OrderHotelService
         $bookedRooms = [];
         $client = $this->findOrCreateClient($clientInfo);
         $clientPj = null;
-        if ($clientInfo['_billing_company_details'] == 1) {
+        if (isset($clientInfo['_billing_company_details']) && $clientInfo['_billing_company_details'] == 1) {
             $clientPj = $this->findOrCreateClientPj($clientInfo, $client->spaid);
         }
 

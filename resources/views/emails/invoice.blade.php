@@ -10,11 +10,11 @@
    <p>Pentru orice întrebări sau nelămuriri, nu ezitați să ne contactați.</p>
    <p>Parerea dumneavoastra este foarte importanta pentru noi si de aceea am aprecia foarte 
     mult un feedback cu privire la experiența serviciilor noastre, 
-    prin intermediul adresei noastre de e-mail: noblesse@resortparadis.ro. </p>
+    prin intermediul adresei noastre de e-mail: {{ config('appconfig.hotel_email') }} </p>
    <p>Pentru informatii suplimentare va stam la dispozitie!</p
    <p>Va multumim,</p>
-   <p>Echipa Noblesse</p>
-   <p>Web : <a href="https://resortparadis.ro/">https://resortparadis.ro/</a></p>
-   <p>Contact : +40 748 182 282</p>
+   <p>Echipa {{ config('appconfig.hotel_1') }}</p>
+   <p>Web : <a href="{{ config('appconfig.hotel_web') }}">{{ config('appconfig.hotel_web') }}</a></p>
+   <p>Contact : {{ config('appconfig.hotel_phone') }}</p>
 </body>
 </html>

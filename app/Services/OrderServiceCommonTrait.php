@@ -145,10 +145,12 @@ trait OrderServiceCommonTrait
     {
         Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotel]);
         if ($hotel == 1) {
-            $client->hotel = '1~Hotel Noblesse';
-        } else {
-            $client->hotel = '1~Hotel Royal';
-        }
+            $client->hotel = '1~'.config('appconfig.hotel_1');
+        } else if ($hotel == 2) {
+            $client->hotel = '1~'.config('appconfig.hotel_2');
+        } else if ($hotel == 3) {
+            $client->hotel = '1~'.config('appconfig.hotel_3');
+        } 
         $client->clhead = $client->spaid; // Self-referential
         $client->save();
         return $client;
@@ -315,7 +317,7 @@ trait OrderServiceCommonTrait
             Log::error('Invoice email not sent: missing recipient or invoice file.');
             return false;
         }
-        $subject = 'Rezervarea dumneavoastra de la Noblesse';
+        $subject = 'Rezervarea dumneavoastra de la '.config('appconfig.hotel_1');
         try {
             Mail::send('emails.invoice', [], function (\Illuminate\Mail\Message $message) use ($to, $subject, $invoice, $bccRecipients) {
                 $message->to($to)
@@ -397,7 +399,7 @@ trait OrderServiceCommonTrait
         $isPj = false;
         $data['data_start'] = new \DateTime($orderBookingInfo['custom_info']['start_date']);
         $data['data_end'] = new \DateTime($orderBookingInfo['custom_info']['end_date']);
-        if ($clientInfo['_billing_company_details'] == 1) {
+        if (isset($clientInfo['_billing_company_details']) && $clientInfo['_billing_company_details'] == 1) {
             $isPj = true;
         }
         if ($isPj) {
