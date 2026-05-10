@@ -21,6 +21,7 @@ use Illuminate\Mail\Message;
 use App\Services\RezervareHotelService;
 use App\Helper\Judet;
 use App\Models\Camerehotel;
+use Throwable;
 
 class OrderHotelService
 {
@@ -75,6 +76,15 @@ class OrderHotelService
             if (is_array($roomNumber) && !empty($roomNumber)) {
                 $selectedRoom = reset($roomNumber);
             } else {
+                $this->sendNoAvailableRoomAlert($orderInfo, [
+                    'client_id' => $client->spaid,
+                    'hotel_id' => $hotelId,
+                    'requested_room_ids' => $roomsIds,
+                    'remaining_room_ids' => $freeRoomsIds,
+                    'start_date' => $orderBookingInfo['start_date'],
+                    'end_date' => $orderBookingInfo['end_date'],
+                    'item' => $item,
+                ]);
                 throw new \Exception('No available room found for the given criteria.');
             }
             $packageName = $item['meta_data'][0]['value'] ?? $item['name'] ?? '';
@@ -162,6 +172,40 @@ class OrderHotelService
             ->orderByDesc('idrezervarehotel')
             ->first();
         return $rezervare;
+    }
+
+    private function sendNoAvailableRoomAlert(array $orderInfo, array $context = []): void
+    {
+        $recipients = config('appconfig.invoice_bcc_recipients', []);
+        if (empty($recipients)) {
+            Log::warning('No recipients configured for no-room-available alert.', [
+                'order_id' => $orderInfo['id'] ?? null,
+                'context' => $context,
+            ]);
+            return;
+        }
+
+        $payload = [
+            'order' => $orderInfo,
+            'context' => $context,
+        ];
+
+        $body = "A hotel order failed because no available room was found.\n\n"
+            . json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        try {
+            Mail::raw($body, function ($message) use ($recipients, $orderInfo) {
+                $message->to($recipients)
+                    ->subject('Eroare rezervare hotel - fara camera disponibila - comanda ' . ($orderInfo['id'] ?? 'necunoscuta'));
+            });
+        } catch (Throwable $exception) {
+            Log::error('Failed to send no-room-available alert email.', [
+                'order_id' => $orderInfo['id'] ?? null,
+                'recipients' => $recipients,
+                'context' => $context,
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 
 

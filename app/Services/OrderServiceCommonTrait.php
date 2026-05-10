@@ -312,7 +312,7 @@ trait OrderServiceCommonTrait
     protected function sendEmail($invoice, $orderBookingInfo)
     {
         $to = $orderBookingInfo['billing']['email'] ?? null;
-        $bccRecipients = ['codrut_befu@yahoo.com', 'support@masterspa.ro'];
+        $bccRecipients = config('appconfig.invoice_bcc_recipients', []);
         if (!$to || !file_exists($invoice)) {
             Log::error('Invoice email not sent: missing recipient or invoice file.');
             return false;
