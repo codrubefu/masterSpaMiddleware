@@ -63,10 +63,19 @@ class OrderHotelService
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
             $start = new \DateTime($orderBookingInfo['start_date']);
             $end = new \DateTime($orderBookingInfo['end_date']);
-            
+            $pret = $item['subtotal'] / $item['quantity'];
+            $packageName = $item['name'] ?? '';
+            $quantity = 1;
+            foreach ($item['meta_data'] as $meta) {
+               if($meta['key'] === 'masterhotel_original_total_nights') {
+                    $quantity = $meta['value'];
+                    break;
+                }
+            }
+
             foreach ($item['meta_data'] as $meta) {
                 if ($meta['key'] === 'masterhotel_original_total_price') {
-                    $pret = ($meta['value'] - 200 )/ $item['quantity'];
+                    $pret = ($meta['value'] - 200 )/ $quantity;
                     break;
                 }
             }
@@ -154,6 +163,8 @@ class OrderHotelService
             ->where('nr', $roomNumber)
             ->select('adultmax', 'kidmax')
             ->first();
+        $adultMax = $camera?->adultmax ?: 2;
+        $kidMax = $camera?->kidmax ?: 0;
         $isSingle = strpos(strtolower($pachet), 'single') !== false;
         $isMicDejun = strpos(strtolower($pachet), 'dejun') !== false;
 
@@ -166,8 +177,8 @@ class OrderHotelService
         $rezervare->camera = $roomNumber;
         $rezervare->tipcamera = $tipCamera;
         $rezervare->nrnopti = $numberOfNights;
-        $rezervare->nradulti = $isSingle ? 1 : $camera->adultmax;
-        $rezervare->nrcopii = $orderBookingInfo['kids'] != 0 ? $camera->kidmax : 0;
+        $rezervare->nradulti = $isSingle ? 1 : $adultMax;
+        $rezervare->nrcopii = $orderBookingInfo['kids'] != 0 ? $kidMax : 0;
         $isMicDejun = strpos(strtolower($pachet), 'dejun') !== false;
         $rezervare->tipmasa = $isMicDejun ? 'MD inclus' : 'Fara MD';
         $rezervare->prettipmasa = $pret;
