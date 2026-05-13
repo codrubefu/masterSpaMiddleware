@@ -52,16 +52,19 @@ class OrderHotelService
         Log::info('Creating rezervare for client', ['client_id' => $client->spaid]);
         foreach ($orderInfo['items'] as $item) {
             //$roomsIds = array_map(fn($id) => (int)trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0])); 
-            $roomsIds = array_map(fn($id) => trim($id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]));
+            $roomsIds = array_values(array_filter(array_map(fn($id) => trim((string) $id), explode(',', $item['product_meta_input']['_hotel_room_number'][0]))));
+            $normalizedBookedRooms = array_map(fn($room) => ltrim((string) $room, '0'), $bookedRooms);
+
+            $freeRoomsIds = array_values(array_filter($roomsIds, function ($roomId) use ($normalizedBookedRooms) {
+                $normalizedRoomId = ltrim((string) $roomId, '0');
+                return !in_array($normalizedRoomId, $normalizedBookedRooms, true);
+            }));
             $hotelId = $item['product_meta_input']['_hotel_id'][0];
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
             $start = new \DateTime($orderBookingInfo['start_date']);
             $end = new \DateTime($orderBookingInfo['end_date']);
             $pret = $item['subtotal'] / $item['quantity'];
             $numberOfNights = $start->diff($end)->days;
-
-            $freeRoomsIds = array_values(array_diff($roomsIds, $bookedRooms));
-
 
             $roomNumber = $rezervarehotelService->getRoomNumber(
                 $freeRoomsIds,
@@ -128,7 +131,7 @@ class OrderHotelService
             $client = $clientPj;
         }
         $this->createTrzdetfact($client, $item['subtotal'], $item['quantity'], $trzfact->nrfact, $roomType, $item);
-        $bookedRooms[] = $selectedRoom;
+        $bookedRooms[] = ltrim((string) $selectedRoom, '0');
         return $bookedRooms;
     }
 
