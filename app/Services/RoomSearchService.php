@@ -71,7 +71,6 @@ class RoomSearchService
 
         // Step 4: Generate all combinations of rooms with the specified number
         $combinations = $this->getRoomCombinations($roomList, $distribution, $numberOfRooms);
-
         // Step 5: Filter out combinations that contain any reserved room
         $availableCombinations = [];
         foreach ($combinations as $combo) {
