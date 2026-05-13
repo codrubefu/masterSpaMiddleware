@@ -191,7 +191,7 @@ class OrderHotelService
         $rezervare->idhotel = $hotelId;
         $rezervare->status = ' ';
         $rezervare->agent = ' ';
-        $rezervare->platit = 1;
+        $rezervare->platit = 0;
         $rezervare->save();
         // Get the last rezervare for this client (by primary key desc)
         $rezervare = Rezervarehotel::where('idcl',  $client->spaid)
