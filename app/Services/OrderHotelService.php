@@ -63,7 +63,21 @@ class OrderHotelService
             $tipCamera = $item['product_meta_input']['_hotel_room_type_long'][0];
             $start = new \DateTime($orderBookingInfo['start_date']);
             $end = new \DateTime($orderBookingInfo['end_date']);
-            $pret = $item['subtotal'] / $item['quantity'];
+            
+            foreach ($item['meta_data'] as $meta) {
+                if ($meta['key'] === 'masterhotel_original_total_price') {
+                    $pret = ($meta['value'] - 200 )/ $item['quantity'];
+                    break;
+                }
+            }
+
+            foreach ($item['product_meta_input'] as $key => $meta) {
+               if($key === '_hotel_room_type_long') {
+                    $packageName = $meta[0] ?? $item['name'] ?? '';
+                    break;
+                }
+            }
+            //$pret = $item['subtotal'] / $item['quantity'];
             $numberOfNights = $start->diff($end)->days;
 
             $roomNumber = $rezervarehotelService->getRoomNumber(
@@ -72,7 +86,7 @@ class OrderHotelService
                 $orderBookingInfo['end_date'],
                 $hotelId
             );
-
+            
             Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
 
             $this->updateHotelToClient($client, $hotelId);
@@ -90,7 +104,6 @@ class OrderHotelService
                 ]);
                 throw new \Exception('No available room found for the given criteria.');
             }
-            $packageName = $item['meta_data'][0]['value'] ?? $item['name'] ?? '';
             $rezervare = $this->createRezervarehotel($client, $orderBookingInfo, $tipCamera, $numberOfNights, $pret, $selectedRoom, $hotelId, $packageName);
 
             // Only create trznp and trzfact for the first item (after first rezervare is created)
@@ -143,7 +156,6 @@ class OrderHotelService
             ->first();
         $isSingle = strpos(strtolower($pachet), 'single') !== false;
         $isMicDejun = strpos(strtolower($pachet), 'dejun') !== false;
-
 
         $rezervare = new Rezervarehotel();
         $rezervare->idcl = $client->spaid;
