@@ -19,7 +19,7 @@
             @foreach($items as $item)
                 <li>
                     Ati platit: {{ $item['name'] ?? 'Produs' }} &nbsp;
-                    Avans: {{ $item['total'] ?? 0 }} RON &nbsp;
+                    {{ $item['total'] ?? 0 }} RON &nbsp;
                     Rest de plata: {{ round((float) ($item['original_total'] ?? 0) - 200, 2) }} RON
                 </li>
             @endforeach
