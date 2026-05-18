@@ -50,4 +50,15 @@ class Pret extends Model
     {
         return $this->hasOne(Camerehotel::class, ['tipcamera' => 'tip']);
     }
+
+    public function genprod()
+    {
+        return $this->belongsTo(Genprod::class, 'art', 'art')
+            ->select(['clseq', 'grpeq', 'arteq', 'deseq'])
+            ->where('clasa', $this->clasa)
+            ->where('grupa', $this->grupa)
+            ->first()
+            ->toArray()
+            ;
+    }
 }

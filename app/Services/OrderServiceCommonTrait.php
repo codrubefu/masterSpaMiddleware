@@ -309,7 +309,7 @@ trait OrderServiceCommonTrait
         return $trzdetnp;
     }
 
-    protected function sendEmail($invoice, $orderBookingInfo)
+    protected function sendEmail($invoice, $orderBookingInfo, $data)
     {
         $to = $orderBookingInfo['billing']['email'] ?? null;
         $bccRecipients = config('appconfig.invoice_bcc_recipients', []);
@@ -317,9 +317,11 @@ trait OrderServiceCommonTrait
             Log::error('Invoice email not sent: missing recipient or invoice file.');
             return false;
         }
+
+
         $subject = 'Rezervarea dumneavoastra de la '.config('appconfig.hotel_1');
         try {
-            Mail::send('emails.invoice', [], function (\Illuminate\Mail\Message $message) use ($to, $subject, $invoice, $bccRecipients) {
+            Mail::send('emails.invoice', $data, function (\Illuminate\Mail\Message $message) use ($to, $subject, $invoice, $bccRecipients) {
                 $message->to($to)
                     ->bcc($bccRecipients)
                     ->subject($subject)
@@ -332,11 +334,11 @@ trait OrderServiceCommonTrait
 
         try {
             $bccSubject = 'Comanda noua - ' . ($orderBookingInfo['billing']['first_name'] ?? 'Client');
+        
             $bccData = [
                 'order' => $orderBookingInfo,
                 'invoiceFile' => basename($invoice),
             ];
-
             Mail::send('emails.invoice_bcc', $bccData, function (\Illuminate\Mail\Message $message) use ($bccRecipients, $bccSubject, $invoice) {
                 $message->to($bccRecipients)
                     ->subject($bccSubject)
@@ -349,6 +351,8 @@ trait OrderServiceCommonTrait
 
         return true;
     }
+
+
     protected function createTrzdet($trzdetnp)
     {
         $trzdet = new \App\Models\Trzdet();
@@ -384,6 +388,7 @@ trait OrderServiceCommonTrait
         $trzdet->save();
         return $trzdet;
     }
+    
     public function generateInvoice($orderBookingInfo, $invoiceNo, $clientInfo, $company, $nrnp)
     {
         $data = ['title' => 'Master Hotel'];
@@ -413,8 +418,19 @@ trait OrderServiceCommonTrait
         }
         $data['company'] = $company;
         foreach ($orderBookingInfo['items'] as $item) {
+            $info = unserialize($item['product_meta_input']['_product_attributes'][0], ['allowed_classes' => false]);
+            $pretInfo = $info['tariff']['value'] ;
+
+            $pretArray = explode('|', $pretInfo);
+            $name = explode('(',$pretArray[0]);
+            foreach ($item['meta_data'] as $meta) {
+                if ($meta['key'] === 'masterhotel_original_total_price') {
+                    $pretOriginal = $meta['value'];
+                    break;
+                }
+            }
             $data['items'][] = [
-                'name' => $item['name'],
+                'name' => str_replace('Cazare', 'Partial Rez', $name[0]),
                 'quantity' => $item['quantity'],
                 'price' => $item['subtotal'] / $item['quantity'],
                 'pret_unit_no_vat' => round($this->getVatFromPrice($item['subtotal'] / $item['quantity']), 2),
@@ -422,6 +438,7 @@ trait OrderServiceCommonTrait
                 'tvaValue' => round($item['subtotal'] - $this->getVatFromPrice($item['subtotal']), 2),
                 'total_no_vat' =>  round($this->getVatFromPrice($item['subtotal']), 2),
                 'tva' => $this->vatRate,
+                'original_total' => $pretOriginal,
             ];
         }
         $data['vatRate'] = $this->vatRate;
@@ -437,7 +454,7 @@ trait OrderServiceCommonTrait
         $fileName = $invoiceDir . '/invoice' . $data['nrfactura'] . '.pdf';
         $pdf->save($fileName);
 
-        $this->sendEmail($fileName, $orderBookingInfo);
+        $this->sendEmail($fileName, $orderBookingInfo, $data);
     }
 
     public function createTrzdetfact($client, $pret,  $quantity, $nrFact, $roomType, $item,$spa = false)
@@ -456,13 +473,15 @@ trait OrderServiceCommonTrait
             throw new \RuntimeException('Price source not found for item.');
         }
 
+        $productInfo = $price->genprod();
+
         $trzdetfact = new \App\Models\Trzdetfact();
         $trzdetfact->idfirma = 1;
         $trzdetfact->nrfact = $nrFact;
         $trzdetfact->idcl = $client->spaid;
-        $trzdetfact->clasa = $price->clasa;
-        $trzdetfact->grupa = $price->grupa;
-        $trzdetfact->art = isset($item['meta_data'][0]) ? $item['meta_data'][0]['value'] : null;
+        $trzdetfact->clasa = $productInfo['clseq'] ?? null;
+        $trzdetfact->grupa = $productInfo['grpeq'] ?? null;
+        $trzdetfact->art = $productInfo['arteq'] ?? null;
         $trzdetfact->cant = $quantity;
         $trzdetfact->cantf = $quantity;
         $trzdetfact->preturon = round($this->getVatFromPrice($pret / $quantity), 2);
