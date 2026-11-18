@@ -1,5 +1,5 @@
 # Imagine de bază PHP cu Apache
-FROM php:8.2-apache
+FROM php:8.2-apache-bookworm
 
 # Instalare dependințe de bază
 RUN apt-get update && apt-get install -y \
@@ -25,7 +25,7 @@ RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 \
     && apt-get install -y unixodbc-dev gcc g++ make autoconf libc-dev pkg-config \
-    && yes '' | pecl install pdo_sqlsrv sqlsrv \
+    && yes '' | pecl install pdo_sqlsrv-5.12.0 sqlsrv-5.12.0 \
     && docker-php-ext-enable pdo_sqlsrv sqlsrv \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
