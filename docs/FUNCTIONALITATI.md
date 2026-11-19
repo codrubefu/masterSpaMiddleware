@@ -13,6 +13,7 @@ Documentul e intretinut de agentul `function-documenter` (`.claude/agents/functi
 - 2026-11-19 — UPDATE — 5. Clienti din comenzi web: metoda noua `applyDefaults` (campuri implicite `' '`, `conthotel = 0`, `origin = 'Romania'`) apelata din `findOrCreate` si `findOrCreateCompany`; `banca`/`iban` PJ din comanda cu `blankIfEmpty`.
 
 - 2026-11-19 — UPDATE — 5. Clienti din comenzi web: metoda noua `syncClhead` (clhead = spaid pentru PF, PJ si `assignHotel`); `findOrCreateCompany(array)` fara `$spaid`, legatura PJ -> PF prin `clhead` nu mai exista.
+- 2026-11-19 — UPDATE — 8. Import produse pe site (genprod): `onlySpa()` foloseste `Genprod::query()` cu `activ = 1`, `webitem = 1`, `websale = 1` (fara filtru clasa/grupa din `packagesQuery()`, fara parametrul `PackageBillService`); `packages()` si `findPackage()` neschimbate.
 
 ## Cuprins
 
@@ -283,14 +284,18 @@ Documentul e intretinut de agentul `function-documenter` (`.claude/agents/functi
 
 | Functie | Ce face | Intrare -> Iesire | Observatii |
 |---|---|---|---|
-| `GenprodController::onlySpa()` | Produsele active din filtrele de pachete, cu `pret` | -> JSON | Acelasi filtru ca la comenzi (`ORDER_PACKAGE_FILTERS`) |
-| `GenprodController::packages()` | Pachetele active cu `pret` (din `packagePrice`) si `components` | -> JSON | Scoate coloana binara `imagine` |
+| `GenprodController::onlySpa()` | Produsele `genprod` cu `activ = 1`, `webitem = 1` si `websale = 1`, cu relatia `pret` | -> JSON | Foloseste `Genprod::query()` direct, NU `packagesQuery()`: nu filtreaza pe clasa/grupa (`ORDER_PACKAGE_FILTERS` nu are efect aici). Fara parametri (nu mai primeste `PackageBillService`). `findPackage()` (procesarea comenzilor) nu e afectata |
+| `GenprodController::packages()` | Pachetele active cu `pret` (din `packagePrice`) si `components` | -> JSON | Scoate coloana binara `imagine`. Foloseste `packagesQuery()`: `activ = 1` + clasa/grupa, FARA `webitem`/`websale` (decizie explicita) |
 | `GenprodController::index/show/store/update/destroy` | CRUD | | `store/update` cu `$request->all()` |
 | `Genprod::pret()` | Relatie cu `pret` | | |
 
-**Config / env:** `ORDER_PACKAGE_FILTERS`.
+**Config / env:** `ORDER_PACKAGE_FILTERS` (doar pentru `packages()`; `onlySpa()` nu il mai foloseste).
 
 **Teste:** `tests/Unit/Orders/PackageBillTest.php` (query-ul de filtre).
+
+**De stiut / TODO:**
+- `onlySpa()` si `packages()` returneaza liste diferite: `onlySpa()` ia orice produs activ cu `webitem = 1` si `websale = 1`, indiferent de clasa/grupa; `packages()` ia doar produsele din clasa/grupa configurata (`ORDER_PACKAGE_FILTERS`, `activ = 1`), fara `webitem`/`websale`. Un produs poate aparea intr-o ruta si nu in cealalta. Intentionat, la cererea utilizatorului.
+- Verificat pe DB la schimbare: `onlySpa()` returneaza 1 produs.
 
 ---
 

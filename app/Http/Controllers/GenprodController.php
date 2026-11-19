@@ -49,13 +49,15 @@ class GenprodController extends Controller
     }
 
         /**
-         * Products imported on the site: only clasa/grupa from
-         * config('orders.packages.filters') (env ORDER_PACKAGE_FILTERS, default WEB:PACK).
+         * Products imported on the site: active and flagged for web
+         * (webitem = 1 and websale = 1), regardless of clasa/grupa.
          */
-        public function onlySpa(\App\Services\Orders\PackageBillService $service)
+        public function onlySpa()
         {
-            $spaItems = $service->packagesQuery()
+            $spaItems = Genprod::query()
                 ->where('activ', 1)
+                ->where('webitem', 1)
+                ->where('websale', 1)
                 ->with('pret')
                 ->get();
             return response()->json($spaItems);
