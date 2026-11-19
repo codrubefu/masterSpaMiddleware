@@ -50,14 +50,13 @@ class GenprodController extends Controller
 
         /**
          * Products imported on the site: active and flagged for web
-         * (webitem = 1 and websale = 1), regardless of clasa/grupa.
+         * (webitem = 1), regardless of clasa/grupa/websale.
          */
         public function onlySpa()
         {
             $spaItems = Genprod::query()
                 ->where('activ', 1)
                 ->where('webitem', 1)
-                ->where('websale', 1)
                 ->with('pret')
                 ->get();
             return response()->json($spaItems);
