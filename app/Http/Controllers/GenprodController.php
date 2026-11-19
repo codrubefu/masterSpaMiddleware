@@ -48,11 +48,37 @@ class GenprodController extends Controller
         return response()->json(['message' => 'Deleted successfully']);
     }
 
-        // Get only Genprod records where clasa = 'SPA'
-        public function onlySpa()
+        /**
+         * Products imported on the site: only clasa/grupa from
+         * config('orders.packages.filters') (env ORDER_PACKAGE_FILTERS, default WEB:PACK).
+         */
+        public function onlySpa(\App\Services\Orders\PackageBillService $service)
         {
-          
-            $spaItems = Genprod::whereIn('clasa', ['PACHETE', 'ABONAMENTE','Spa Comercial','Spa Medical'])->with('pret')->get();
+            $spaItems = $service->packagesQuery()
+                ->where('activ', 1)
+                ->with('pret')
+                ->get();
             return response()->json($spaItems);
+        }
+
+        /**
+         * Web packages to import on the site (clasa/grupa from
+         * ORDER_PACKAGE_FILTERS), with price (pret) and components (gencard).
+         */
+        public function packages(\App\Services\Orders\PackageBillService $service)
+        {
+            $packages = $service->packagesQuery()
+                ->where('activ', 1)
+                ->get()
+                ->map(function (Genprod $package) use ($service) {
+                    $data = $package->toArray();
+                    unset($data['imagine']); // binary column, breaks JSON
+                    $data['pret'] = $service->packagePrice($package);
+                    $data['components'] = $service->components($package)->values();
+
+                    return $data;
+                });
+
+            return response()->json($packages);
         }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Trzfact extends Model
 {
+    use \App\Models\Concerns\UsesScopeIdentity;
     protected $table = 'trzfact';
     protected $primaryKey = 'nrfact';
     public $timestamps = false;

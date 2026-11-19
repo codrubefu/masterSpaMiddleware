@@ -71,6 +71,9 @@ Route::middleware('api.secret')->group(function () {
     Route::post('/test-email/send', [TestEmailController::class, 'sendTestEmail']);
     Route::post('/test-email/send/{email}', [TestEmailController::class, 'sendTestEmailToCustom']);
 
+        // Web packages (before apiResource, otherwise genprod/{id} catches it)
+        Route::get('genprod/packages', [\App\Http\Controllers\GenprodController::class, 'packages']);
+
         // Genprod CRUD routes
         Route::apiResource('genprod', \App\Http\Controllers\GenprodController::class);
 

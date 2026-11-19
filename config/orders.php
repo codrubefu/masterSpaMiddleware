@@ -24,6 +24,23 @@ return [
         'enabled' => (bool) env('CREATE_NP_AND_INVOICE', false),
     ],
 
+    /*
+    | Pachete web (nota de informare / rezervare).
+    | Produsele din genprod cu clasa/grupa de aici se importa pe site si,
+    | la comanda, se scriu in trzbill + trzdetbill + detaliitrz (facturat = 0),
+    | cu componentele din gencard. Nota de plata o face receptia.
+    | Format env: "CLASA:GRUPA,CLASA2:GRUPA2".
+    */
+    'packages' => [
+        'filters' => array_values(array_filter(array_map(
+            static function (string $pair) {
+                [$clasa, $grupa] = array_pad(array_map('trim', explode(':', $pair, 2)), 2, '');
+                return $clasa !== '' && $grupa !== '' ? ['clasa' => $clasa, 'grupa' => $grupa] : null;
+            },
+            explode(',', (string) env('ORDER_PACKAGE_FILTERS', 'WEB:PACK'))
+        ))),
+    ],
+
     // Valoarea scrisa in client.hotel, dupa idhotel din WooCommerce.
     'hotels' => [
         1 => '1~Hotel Noblesse',

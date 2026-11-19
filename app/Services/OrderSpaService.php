@@ -6,6 +6,7 @@ use App\Models\Trzcard;
 use App\Services\Orders\ClientResolver;
 use App\Services\Orders\NpInvoiceService;
 use App\Services\Orders\OrderMailer;
+use App\Services\Orders\PackageBillService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -15,6 +16,7 @@ class OrderSpaService
         private ClientResolver $clients,
         private NpInvoiceService $npInvoice,
         private OrderMailer $mailer,
+        private PackageBillService $packages,
     ) {
     }
 
@@ -43,15 +45,36 @@ class OrderSpaService
                 }
             }
 
-            $trznp = null;
-            $trzfact = null;
-            if ($this->npInvoice->enabled()) {
-                Log::info('Creating trznp/trzfact for client', ['client_id' => $client->spaid]);
-                $trznp = $this->npInvoice->createNp($client, $orderInfo['total'], 0);
-                $trzfact = $this->npInvoice->createInvoice($clientPj ?? $client, $orderInfo['total'], $trznp);
+            // Web packages (e.g. WEB/PACK) go to an information note
+            // (trzbill/trzdetbill/detaliitrz); reception makes the payment note.
+            $packages = [];
+            $others = [];
+            foreach ($orderInfo['items'] as $item) {
+                $package = $this->packages->findPackage($item);
+                if ($package) {
+                    $packages[] = ['package' => $package, 'item' => $item];
+                } else {
+                    $others[] = $item;
+                }
             }
 
-            foreach ($orderInfo['items'] as $item) {
+            if ($packages) {
+                $bill = $this->packages->createBill($client, $packages, $orderInfo['id'] ?? null);
+                $orderInfo['nrbill'] = $bill->nrbill;
+            }
+
+            $trznp = null;
+            $trzfact = null;
+            if ($others && $this->npInvoice->enabled()) {
+                $othersTotal = $packages
+                    ? array_sum(array_map(fn ($i) => (float) ($i['subtotal'] ?? 0), $others))
+                    : $orderInfo['total'];
+                Log::info('Creating trznp/trzfact for client', ['client_id' => $client->spaid]);
+                $trznp = $this->npInvoice->createNp($client, $othersTotal, 0);
+                $trzfact = $this->npInvoice->createInvoice($clientPj ?? $client, $othersTotal, $trznp);
+            }
+
+            foreach ($others as $item) {
                 // TODO: trzcard is filled with WooCommerce item keys (not fillable) -> empty row; needs a field mapping.
                 $this->createTrzcard($item);
 
@@ -64,8 +87,14 @@ class OrderSpaService
             return $orderInfo;
         });
 
-        // Emails only after the order is committed.
-        $this->mailer->sendVouchers($orderInfo);
+        // Emails only after the order is committed. The order is already saved,
+        // so a PDF/mail failure must not return an error (WooCommerce would retry
+        // and duplicate the order).
+        try {
+            $this->mailer->sendVouchers($orderInfo);
+        } catch (\Throwable $e) {
+            Log::error('Spa order saved, but vouchers failed', ['order_id' => $orderInfo['id'] ?? null, 'message' => $e->getMessage(), 'exception' => $e]);
+        }
 
         return true;
     }

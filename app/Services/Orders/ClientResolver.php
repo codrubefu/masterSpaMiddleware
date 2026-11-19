@@ -34,11 +34,13 @@ class ClientResolver
                 $client->mobilcontact = $clientInfo['phone'];
             }
 
+            $this->applyDefaults($client);
+
             $now = now()->format('Y-m-d H:i:s.v');
             $client->den        = $clientInfo['last_name'];
             $client->prenume    = $clientInfo['first_name'];
-            $client->adresa1    = $clientInfo['address_1'] ?? null;
-            $client->adresa2    = $clientInfo['address_2'] ?? null;
+            $client->adresa1    = $this->blankIfEmpty($clientInfo['address_1'] ?? null);
+            $client->adresa2    = $this->blankIfEmpty($clientInfo['address_2'] ?? null);
             $client->pj         = false;
             $client->modp       = 'Website';
             $client->obscui     = 'independent';
@@ -49,13 +51,14 @@ class ClientResolver
             $client->datacreare = $now;
             $client->compid     = 'Website';
             $client->tip        = 'Website';
-            $client->oras       = $clientInfo['city'] ?? null;
-            $client->judet      = isset($clientInfo['state']) ? Judet::getNameByCode($clientInfo['state']) : null;
-            $client->tara       = isset($clientInfo['country']) ? Country::getNameByCode($clientInfo['country']) : null;
+            $client->oras       = $this->blankIfEmpty($clientInfo['city'] ?? null);
+            $client->judet      = $this->blankIfEmpty(!empty($clientInfo['state']) ? Judet::getNameByCode($clientInfo['state']) : null);
+            $client->tara       = $this->blankIfEmpty(!empty($clientInfo['country']) ? Country::getNameByCode($clientInfo['country']) : null);
             $client->valuta     = 'RON';
             $client->hotel      = 'Extra';
             $client->cnpcui     = '0000000000000';
             $client->save();
+            $this->syncClhead($client);
 
             return $client->refresh();
         } catch (\Throwable $exception) {
@@ -74,11 +77,50 @@ class ClientResolver
     }
 
     /**
-     * Company client (PJ), matched by CUI, linked to the person client $spaid.
+     * Default values Acord expects on every web client (PF and PJ).
      */
-    public function findOrCreateCompany(array $clientInfo, $spaid): Client
+    private function applyDefaults(Client $client): void
+    {
+        foreach ([
+            'reg', 'cp', 'tel', 'fax', 'banca', 'iban', 'profesie', 'nrvoucher',
+            'institutia', 'cardid', 'obs', 'pasaport', 'numevip', 'mobilvip',
+            'emailvip', 'sursamkt', 'canalmkt', 'idpartener',
+        ] as $field) {
+            $client->{$field} = ' ';
+        }
+
+        $client->conthotel = 0;
+        $client->origin    = 'Romania';
+    }
+
+    /**
+     * Acord expects clhead = spaid (own id). spaid is only known after the
+     * first insert, so a second update is needed for new clients.
+     */
+    private function syncClhead(Client $client): void
+    {
+        if ((int) $client->clhead !== (int) $client->spaid) {
+            $client->clhead = $client->spaid;
+            $client->save();
+        }
+    }
+
+    /**
+     * Acord expects a single space instead of NULL / empty string in text columns.
+     */
+    private function blankIfEmpty($value): string
+    {
+        return ($value === null || trim((string) $value) === '') ? ' ' : (string) $value;
+    }
+
+    /**
+     * Company client (PJ), matched by CUI.
+     */
+    public function findOrCreateCompany(array $clientInfo): Client
     {
         $client = Client::where('cnpcui', $clientInfo['_billing_cui'])->first() ?? new Client();
+
+        $this->applyDefaults($client);
 
         $now = now()->format('Y-m-d H:i:s.v');
         $client->cnpcui     = $clientInfo['_billing_cui'];
@@ -91,10 +133,9 @@ class ClientResolver
         $client->valuta     = 'RON';
         $client->datacreare = $now;
         $client->tip        = 'Website';
-        $client->clhead     = $spaid;
         $client->nrc        = $clientInfo['_billing_reg_com'];
-        $client->banca      = $clientInfo['_billing_banca'];
-        $client->iban       = $clientInfo['_billing_cont_iban'];
+        $client->banca      = $this->blankIfEmpty($clientInfo['_billing_banca'] ?? null);
+        $client->iban       = $this->blankIfEmpty($clientInfo['_billing_cont_iban'] ?? null);
         $client->oras       = $clientInfo['_billing_company_city'];
         $client->judet      = Judet::getNameByCode($clientInfo['_billing_company_state']);
         $client->tara       = Country::getNameByCode($clientInfo['_billing_company_country']);
@@ -102,6 +143,7 @@ class ClientResolver
         $client->atojki     = 'Firma';
         $client->pj         = 1;
         $client->save();
+        $this->syncClhead($client);
 
         return $client->refresh();
     }
@@ -115,15 +157,15 @@ class ClientResolver
             return null;
         }
 
-        return $this->findOrCreateCompany($clientInfo, $person->spaid);
+        return $this->findOrCreateCompany($clientInfo);
     }
 
     public function assignHotel(Client $client, $hotelId): Client
     {
         Log::info('Updating hotel for client', ['client_id' => $client->spaid, 'hotel' => $hotelId]);
         $client->hotel = config('orders.hotels')[$hotelId] ?? config('orders.default_hotel');
-        $client->clhead = $client->spaid; // Self-referential
         $client->save();
+        $this->syncClhead($client);
 
         return $client;
     }

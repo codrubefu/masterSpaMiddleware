@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Client extends Model
 {
+    use \App\Models\Concerns\UsesScopeIdentity;
     use HasFactory;
 
     protected $connection = 'sqlsrv';

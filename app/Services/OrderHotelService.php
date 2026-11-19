@@ -88,12 +88,17 @@ class OrderHotelService
             return [$trznp, $trzfact];
         });
 
-        // PDF + emails only after the order is committed.
-        if ($trzfact) {
-            $this->mailer->sendHotelInvoice($orderInfo, $clientInfo, trim($trzfact->nrfactspec), $trznp->nrnpint);
-        } else {
-            // No invoice in DB -> no invoice PDF; just a booking confirmation.
-            $this->mailer->sendHotelBooking($orderInfo);
+        // PDF + emails only after the order is committed; a failure here must
+        // not return an error (WooCommerce would retry and duplicate the order).
+        try {
+            if ($trzfact) {
+                $this->mailer->sendHotelInvoice($orderInfo, $clientInfo, trim($trzfact->nrfactspec), $trznp->nrnpint);
+            } else {
+                // No invoice in DB -> no invoice PDF; just a booking confirmation.
+                $this->mailer->sendHotelBooking($orderInfo);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Hotel order saved, but emails failed', ['order_id' => $orderInfo['id'] ?? null, 'message' => $e->getMessage(), 'exception' => $e]);
         }
 
         return true;

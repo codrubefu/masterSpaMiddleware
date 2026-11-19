@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Trznp extends Model
 {
+    use \App\Models\Concerns\UsesScopeIdentity;
     use HasFactory;
 
     protected $table = 'trznp';
